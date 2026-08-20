@@ -1,0 +1,2608 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>INDICADORES ALMOXARIFADO</title>
+<style>
+:root{
+  --bg:#0b0f0e;--panel:#111715;--panel2:#151b18;--line:#35403b;
+  --text:#f4f5f4;--muted:#9aa39f;--yellow:#ffd20a;--yellow2:#f5c400;
+  --danger:#ff6b6b;--green:#55d68a;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 80% 0%,rgba(255,210,10,.045),transparent 28%),var(--bg);color:var(--text);font:14px Inter,Segoe UI,Arial,sans-serif}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.app{min-height:100vh;display:flex}
+.sidebar{width:245px;position:fixed;inset:0 auto 0 0;background:#0a0d0c;border-right:1px solid #252c29;padding:25px 17px;display:flex;flex-direction:column;z-index:5}
+.brand{height:72px;display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+.brand img{max-width:165px;max-height:58px;object-fit:contain;display:none}
+.placeholder{font-size:33px;font-weight:800;letter-spacing:-2px}.placeholder span{color:var(--yellow)}
+.nav{display:flex;flex-direction:column;gap:7px}
+.nav button{border:0;background:transparent;color:#b9c0bd;text-align:left;padding:13px 15px;border-radius:10px;font-size:14px;font-weight:700}
+.nav button:hover{background:#181e1b;color:#fff}.nav button.active{background:var(--yellow);color:#111}
+.sidebar-footer{margin-top:auto;color:#626b67;font-size:11px;line-height:1.5;padding:12px}
+.main{margin-left:245px;width:calc(100% - 245px);padding:27px 32px 45px}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:27px}
+.title h1{margin:0;font-size:29px;letter-spacing:-.5px}.title p{margin:5px 0 0;color:var(--muted);font-size:13px}
+.period{background:var(--yellow);color:#111;padding:11px 17px;border-radius:10px;font-weight:800;font-size:13px}
+.view{display:none}.view.active{display:block}
+.section-title{color:var(--yellow);font-size:15px;text-transform:uppercase;letter-spacing:1.1px;margin:0 0 12px}
+.cards{display:grid;gap:13px}.cards3{grid-template-columns:repeat(3,1fr)}.cards4{grid-template-columns:repeat(4,1fr)}
+.kpi,.panel,.feed-card,.indicator-admin-card,.team-card{background:linear-gradient(145deg,#141a17,#101513);border:1px solid var(--line);border-radius:15px}
+.kpi{padding:20px;min-height:132px;position:relative;overflow:hidden}.kpi:after{content:"";position:absolute;width:110px;height:110px;border-radius:50%;right:-35px;bottom:-55px;background:rgba(255,210,10,.045)}
+.kpi-label{font-size:10px;color:#aeb6b2;font-weight:800;text-transform:uppercase;letter-spacing:.5px}.kpi-value{font-size:32px;font-weight:900;margin-top:15px}.kpi-sub{color:var(--muted);font-size:11px;margin-top:5px}
+.panel{padding:19px;margin-top:13px}.panel-head{display:flex;justify-content:space-between;gap:14px;align-items:center}.panel-title{font-weight:900;font-size:14px}.small-note{color:var(--muted);font-size:11px;line-height:1.45;margin-top:4px}
+.legend{display:flex;gap:18px;margin:10px 0 4px;color:#d9dddb;font-size:10px;font-weight:700}.legend span{display:flex;align-items:center;gap:6px}.legend span:before{content:"";width:18px;height:4px;border-radius:5px;background:var(--yellow)}.legend .meta:before{background:#fff}
+.chart{height:365px;position:relative;overflow-x:auto;overflow-y:hidden;padding:25px 18px 8px;border-top:1px solid #202824;margin-top:5px}
+.chart-inner{height:320px;min-width:620px;position:relative;display:flex;align-items:flex-end;justify-content:center;gap:clamp(20px,3vw,54px);padding:0 20px 30px}
+.gridline{position:absolute;left:15px;right:15px;height:1px;background:#27312d;border-top:1px dashed #27312d}.gridlabel{position:absolute;left:-5px;transform:translateX(-100%);font-size:9px;color:#65706b;white-space:nowrap}
+.bar-item{height:290px;min-width:58px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;padding-bottom:2px}
+.bar-wrap{height:245px;width:72px;position:relative;display:flex;align-items:flex-end;justify-content:center}
+.bar{width:42px;background:linear-gradient(#ffda45,#f1c82e);border-radius:6px 6px 0 0;position:relative;min-height:5px;box-shadow:0 8px 20px rgba(255,210,10,.08)}
+.bar-value{position:absolute;left:50%;bottom:calc(100% + 7px);transform:translateX(-50%);font-size:10px;font-weight:900;white-space:nowrap;color:#fff;z-index:6}
+.meta-line{position:absolute;left:2px;width:68px;height:4px;background:#fff;border-radius:5px;box-shadow:0 0 7px rgba(255,255,255,.35);z-index:5}
+.meta-value{position:absolute;top:7px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:800;color:#fff;white-space:nowrap;background:rgba(17,23,21,.94);border:1px solid #3a4540;padding:2px 4px;border-radius:3px;z-index:7}
+.date{font-size:9px;font-weight:900;color:#d6dcda;margin-top:9px;white-space:nowrap}
+.chart-controls,.actions,.team-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.btn,.toggle button{border:1px solid #424b46;background:#171d1a;color:#d4d8d6;border-radius:8px;padding:8px 12px;font-size:11px;font-weight:800}
+.btn:hover,.toggle button:hover{border-color:#69736e}.btn-primary,.toggle button.active{background:var(--yellow);color:#111;border-color:var(--yellow)}.btn-danger{color:#ff9c9c;border-color:#643d3d}.btn-small{padding:7px 10px;font-size:10px}
+.metrics-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}.progress-wrap{background:#0d1210;border:1px solid #28322e;border-radius:10px;padding:13px}
+.progress-head{display:flex;justify-content:space-between;font-size:10px;font-weight:800;color:#bfc6c3}.progress{height:8px;background:#252d29;border-radius:99px;margin-top:10px;overflow:hidden}.progress>div{height:100%;background:var(--yellow);border-radius:99px}
+.subnav{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px}.indicator-tab{padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:#111715;color:#bbb;font-size:11px;font-weight:800}.indicator-tab.active{background:var(--yellow);color:#111}
+.notice{padding:12px 14px;border-left:3px solid var(--yellow);background:#171d1a;color:#c7ceca;border-radius:7px;font-size:11px;margin-bottom:15px}
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}.full{grid-column:1/-1}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:10px;color:#aeb6b2;font-weight:800}
+.field input,.field select,.field textarea{width:100%;background:#0c110f;color:#f5f5f5;border:1px solid #3a4540;border-radius:8px;padding:10px;outline:none}.field textarea{min-height:90px;resize:vertical}
+.table-wrap{overflow:auto;border:1px solid #29332f;border-radius:9px}.table-wrap table{width:100%;min-width:680px;border-collapse:collapse}.table-wrap th,.table-wrap td{padding:10px;border-bottom:1px solid #29332f;text-align:left;font-size:11px}.table-wrap th{color:#8f9994;background:#0d1210}
+.status{padding:4px 7px;border-radius:5px;font-size:9px;font-weight:800}.status.ok{background:rgba(85,214,138,.12);color:#72e6a0}.status.bad{background:rgba(255,107,107,.12);color:#ff9999}
+.team-layout{display:grid;grid-template-columns:1fr 1.35fr;gap:13px}.team-grid,.indicator-admin-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}
+.team-card{padding:15px}.team-head{display:flex;justify-content:space-between;gap:10px}.team-head h3{margin:0;font-size:16px}.team-meta{font-size:11px;color:#9aa39f;margin-top:5px}
+.people{display:flex;flex-direction:column;gap:7px;margin-top:14px}.person{display:flex;align-items:center;gap:9px;background:#0d1210;border:1px solid #29332f;padding:7px 9px;border-radius:8px}.person small{display:block;color:var(--muted);margin-top:2px}
+.person.dragging{opacity:.45;border-color:var(--yellow)}
+.person-main{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
+.person-actions{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.drag-handle{cursor:grab;color:#8e9893;font-weight:900;padding:2px 4px}
+.drag-handle:active{cursor:grabbing}
+.order-btn{min-width:30px}
+.hidden{display:none!important}
+
+.avatar{width:34px;height:34px;border-radius:50%;background:#252d29;display:grid;place-items:center;font-weight:800;overflow:hidden}.avatar img{width:100%;height:100%;object-fit:cover}
+.task-list{color:#cdd2cf;font-size:11px;line-height:1.8}.metric-mini{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #29332f;font-size:10px}.metric-mini b{color:#fff}
+.empty{color:#6f7974;padding:25px;text-align:center}.org{min-height:420px;display:flex;flex-direction:column;align-items:center;padding:18px;overflow:auto}.org-node{border:1px solid #626b66;border-radius:12px;padding:11px 16px;background:#171d1a;text-align:center;min-width:190px;max-width:260px}.org-node.main{border-color:var(--yellow)}.org-node small{display:block;color:var(--muted);margin-top:4px}
+.org-photo{width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid var(--yellow);display:block;margin:0 auto 8px}.connector{height:20px;border-left:2px solid #626966}.org-children{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.org-editor-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.org-editor-person{display:grid;grid-template-columns:auto 42px 1fr auto;gap:10px;align-items:center;background:#0d1210;border:1px solid #29332f;border-radius:9px;padding:9px}
+.org-editor-person .avatar{width:42px;height:42px}
+.org-editor-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.org-editor-responsible{background:#0d1210;border:1px solid #29332f;border-radius:10px;padding:13px;margin-top:12px}
+.org-editor-responsible .form-grid{margin-top:10px}
+.org-editor-title{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.org-editor-title strong{font-size:12px}
+
+.logo-box{display:flex;gap:15px;align-items:center;padding:14px;background:#0d1210;border:1px dashed #46504b;border-radius:10px}.logo-preview{width:100px;height:50px;display:flex;align-items:center;justify-content:center;border:1px solid #313a36;border-radius:7px;background:#090c0b;overflow:hidden}.logo-preview img{max-width:90px;max-height:43px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:50;display:none;align-items:center;justify-content:center;padding:20px}.modal.open{display:flex}.modal-box{width:min(900px,100%);max-height:92vh;overflow:auto;background:#121715;border:1px solid #626966;border-radius:18px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.45)}.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.modal-head h3{margin:0}.close{background:none;border:0;color:#aaa;font-size:26px}.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}.record-row{display:grid;grid-template-columns:1.1fr 1fr 1fr auto;gap:8px;align-items:center;margin-bottom:8px}
+.text-config{margin-top:14px}.text-config .field input{min-height:38px}
+.config-section{margin-top:14px;padding-top:15px;border-top:1px solid #29332f}.config-section h4{margin:0 0 12px;font-size:12px;color:#fff}
+@media(max-width:1050px){.sidebar{width:200px}.main{margin-left:200px;width:calc(100% - 200px)}.cards4,.form-grid,.team-grid,.indicator-admin-grid{grid-template-columns:repeat(2,1fr)}.team-layout{grid-template-columns:1fr}}
+@media(max-width:700px){.sidebar{position:static;width:100%;height:auto}.app{display:block}.main{margin:0;width:100%;padding:20px}.sidebar-footer{display:none}.nav{flex-direction:row;overflow:auto}.nav button{white-space:nowrap}.cards3,.cards4,.metrics-row,.form-grid,.team-grid,.indicator-admin-grid{grid-template-columns:1fr}.topbar{align-items:flex-start;gap:15px;flex-direction:column}.record-row{grid-template-columns:1fr 1fr}.record-row button{grid-column:1/-1}.chart-inner{gap:18px}}
+.btn:disabled{opacity:.45;cursor:not-allowed;filter:saturate(.5)}
+.org-node{position:relative}
+.macro-team-row{align-items:flex-start;gap:18px}.macro-team-node{min-width:180px}.macro-org-preview .org-node .org-children{margin-top:8px}.macro-org-preview .connector{height:14px}.macro-org-preview{min-height:250px}.macro-org-preview .org-node{box-shadow:0 8px 25px rgba(0,0,0,.18)}
+.macro-inline-preview{margin-top:14px;border:1px solid #29332f;border-radius:10px;padding:12px;background:#0d1210}.macro-inline-preview .org{min-height:300px}.macro-team-node{min-width:190px}.macro-people-list{display:flex;flex-direction:column;gap:8px}.macro-person-row{display:grid;grid-template-columns:42px minmax(180px,1fr) minmax(240px,320px);gap:10px;align-items:center;padding:10px 12px;border:1px solid #29332f;border-radius:10px;background:#101513}.macro-person-row .avatar{width:36px;height:36px}.macro-person-row .avatar img{width:36px;height:36px;border-radius:50%;object-fit:cover}.macro-person-info b{display:block}.macro-person-info small{display:block;color:var(--muted);margin-top:3px}.macro-person-destination select{width:100%}.macro-person-destination label{display:block;font-size:10px;color:var(--muted);margin-bottom:4px}.macro-inline-preview .macro-team-row{align-items:flex-start}
+.collaborators-panel{margin-bottom:13px}.collaborator-gallery{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}.collaborator-photo-card{width:82px;text-align:center}.collaborator-photo-btn{width:68px;height:68px;border-radius:50%;padding:0;border:2px solid #4b5751;background:#18201c;overflow:hidden;display:grid;place-items:center;margin:0 auto}.collaborator-photo-btn:hover{border-color:var(--yellow);transform:translateY(-1px)}.collaborator-photo-btn img{width:100%;height:100%;object-fit:cover}.collaborator-photo-btn span{font-size:20px;font-weight:900;color:#fff}.collaborator-photo-actions{display:flex;justify-content:center;gap:3px;margin-top:6px}.collaborator-photo-actions .btn{font-size:9px;padding:4px 6px}.management-layout{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:start}.team-management-column>.panel{height:100%}.organogram-panel{min-height:520px}.org-toolbar{display:flex;justify-content:flex-end;gap:8px;margin:10px 0}.free-org-area{min-height:420px;border:1px dashed #3c4842;border-radius:12px;background:#0d1210;padding:14px;overflow:auto}.free-org-root{min-height:380px;text-align:center}.free-org-root-title{display:inline-block;border:1px solid var(--yellow);border-radius:12px;padding:12px 28px;background:#171d1a;font-weight:900;letter-spacing:.4px}.free-org-root-list{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:18px}.free-org-empty{padding:55px 15px;color:#66716c}.free-org-node-wrap{display:flex;flex-direction:column;align-items:center;width:100%;max-width:100%}.free-org-node{display:grid;grid-template-columns:22px 46px minmax(120px,1fr) auto;gap:9px;align-items:center;width:min(100%,560px);padding:9px 11px;border:1px solid #46514c;border-radius:11px;background:#151c19;text-align:left;cursor:grab}.free-org-node:hover{border-color:#69756e}.free-org-node.dragging{opacity:.45;border-color:var(--yellow)}.free-org-drag{color:#7d8782;font-size:18px}.free-org-photo{width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid var(--yellow);display:grid;place-items:center;background:#252d29}.free-org-photo.initials{font-weight:900;color:#fff}.free-org-info b{display:block}.free-org-info small{display:block;color:var(--muted);margin-top:3px}.free-org-actions{display:flex;gap:4px}.free-org-children{width:calc(100% - 30px);margin:10px 0 0 30px;padding-left:20px;border-left:1px solid #49534e;display:flex;flex-direction:column;gap:10px;align-items:center}.free-org-children .free-org-node{width:min(100%,520px)}
+
+
+/* ============================================================
+   AJUSTE VISUAL — SOMENTE GESTÃO DE EQUIPES
+   Não altera dashboard, indicadores, histórico ou configurações.
+   ============================================================ */
+
+#equipes {
+  width: 100%;
+}
+
+#equipes .panel {
+  overflow: hidden;
+}
+
+#equipes .collaborators-panel {
+  margin-bottom: 14px;
+}
+
+#equipes .collaborators-panel .panel-head {
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+#equipes .collaborator-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 12px;
+  align-items: start;
+  width: 100%;
+}
+
+#equipes .collaborator-photo-card {
+  width: 100%;
+  min-width: 0;
+  min-height: 112px;
+  padding: 9px 7px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  border: 1px solid #29332f;
+  border-radius: 11px;
+  background: #101613;
+}
+
+#equipes .collaborator-photo-btn {
+  width: 68px;
+  height: 68px;
+  flex: 0 0 68px;
+  margin: 0;
+}
+
+#equipes .collaborator-photo-actions {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin: 0;
+}
+
+#equipes .collaborator-photo-actions .btn {
+  width: 100%;
+  min-width: 0;
+  padding: 5px 4px;
+  font-size: 9px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+#equipes .management-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+#equipes .team-management-column,
+#equipes .organogram-panel {
+  min-width: 0;
+}
+
+#equipes .team-management-column > .panel,
+#equipes .organogram-panel {
+  height: 100%;
+}
+
+#equipes .team-management-column .panel-head,
+#equipes .organogram-panel .panel-head {
+  align-items: flex-start;
+}
+
+#equipes .team-management-column .panel-head > div:first-child,
+#equipes .organogram-panel .panel-head > div:first-child {
+  min-width: 0;
+}
+
+#equipes .team-management-column .small-note,
+#equipes .organogram-panel .small-note {
+  line-height: 1.45;
+}
+
+#equipes .team-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+#equipes .team-card {
+  min-width: 0;
+  overflow: hidden;
+}
+
+#equipes .team-card .team-head {
+  min-width: 0;
+  align-items: flex-start;
+}
+
+#equipes .team-card .team-head > div:first-child {
+  min-width: 0;
+}
+
+#equipes .team-card h3,
+#equipes .team-card .team-meta {
+  overflow-wrap: anywhere;
+}
+
+#equipes .people {
+  min-width: 0;
+}
+
+#equipes .person {
+  min-width: 0;
+  grid-template-columns: 22px 40px minmax(0, 1fr);
+}
+
+#equipes .person-main {
+  min-width: 0;
+}
+
+#equipes .person-actions {
+  width: 100%;
+  padding-left: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 5px;
+}
+
+#equipes .person-actions .btn {
+  min-width: 0;
+  width: 100%;
+  padding: 5px 4px;
+  white-space: nowrap;
+  font-size: 9px;
+}
+
+#equipes .organogram-panel {
+  min-height: 0;
+}
+
+#equipes .org-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+#equipes .free-org-area {
+  min-height: 500px;
+  max-height: 760px;
+  overflow: auto;
+  padding: 16px;
+}
+
+#equipes .free-org-node {
+  max-width: 100%;
+}
+
+#equipes .free-org-info {
+  min-width: 0;
+  overflow: hidden;
+}
+
+#equipes .free-org-info b,
+#equipes .free-org-info small {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1200px) {
+  #equipes .collaborator-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+
+  #equipes .management-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  #equipes .management-layout {
+    grid-template-columns: 1fr;
+  }
+
+  #equipes .free-org-area {
+    min-height: 420px;
+  }
+}
+
+@media (max-width: 560px) {
+  #equipes .collaborator-gallery {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  #equipes .collaborator-photo-card {
+    min-height: 106px;
+    padding: 7px 5px;
+  }
+
+  #equipes .collaborator-photo-btn {
+    width: 60px;
+    height: 60px;
+    flex-basis: 60px;
+  }
+
+  #equipes .person-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+</style>
+
+<style id="gestao-equipes-layout-final">
+/* CORREÇÃO FINAL DE LAYOUT — SOMENTE ABA GESTÃO DE EQUIPES */
+#equipes .collaborators-panel,
+#equipes .team-management-column,
+#equipes .organogram-panel,
+#equipes .team-card,
+#equipes .person,
+#equipes .leader-person {
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Cabeçalho das equipes: texto e ações nunca ocupam o mesmo espaço */
+#equipes .team-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: start;
+}
+
+#equipes .team-head > div:first-child {
+  min-width: 0;
+}
+
+#equipes .team-head .actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  max-width: 180px;
+}
+
+#equipes .team-head h3,
+#equipes .team-meta,
+#equipes .person-main b,
+#equipes .person-main small {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Pessoa da equipe: foto em coluna própria e botões em uma linha abaixo.
+   Isso elimina definitivamente a sobreposição vista na tela. */
+#equipes .people {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+#equipes .person {
+  display: grid;
+  grid-template-columns: 22px 42px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  row-gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 10px 11px;
+}
+
+#equipes .person .drag-handle {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+}
+
+#equipes .person .avatar {
+  grid-column: 2;
+  grid-row: 1;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  flex: none;
+}
+
+#equipes .person .person-main {
+  grid-column: 3;
+  grid-row: 1;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+#equipes .person .person-main > div {
+  min-width: 0;
+}
+
+#equipes .person .person-actions {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  justify-content: stretch;
+}
+
+#equipes .person .person-actions .btn {
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+  padding: 4px 7px;
+  font-size: 9px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Responsável: mantém foto e nome alinhados, sem apertar a imagem. */
+#equipes .team-card > .person:first-of-type,
+#equipes .leader-person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 11px;
+  margin-top: 8px;
+}
+
+#equipes .team-card > .person:first-of-type .avatar,
+#equipes .leader-person .avatar {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  flex: 0 0 42px;
+}
+
+#equipes .team-card > .person:first-of-type > div:last-child,
+#equipes .leader-person > div:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Área de gestão: o lado esquerdo recebe espaço suficiente para operar as equipes. */
+#equipes .management-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+#equipes .team-management-column,
+#equipes .organogram-panel {
+  width: 100%;
+  min-width: 0;
+}
+
+#equipes .team-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  width: 100%;
+}
+
+#equipes .team-card {
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Botões da equipe ficam sempre em uma faixa própria. */
+#equipes .team-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  width: 100%;
+  margin-top: 13px;
+}
+
+#equipes .team-actions .btn {
+  flex: 0 0 auto;
+}
+
+/* Galeria de colaboradores: cartões uniformes, sem fotos espremidas. */
+#equipes .collaborator-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
+  gap: 12px;
+  align-items: start;
+  width: 100%;
+}
+
+#equipes .collaborator-photo-card {
+  width: 100%;
+  min-width: 0;
+  min-height: 118px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+#equipes .collaborator-photo-btn {
+  width: 68px;
+  height: 68px;
+  min-width: 68px;
+  min-height: 68px;
+  flex: 0 0 68px;
+}
+
+#equipes .collaborator-photo-actions {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin: 0;
+}
+
+#equipes .collaborator-photo-actions .btn {
+  width: 100%;
+  min-width: 0;
+  padding: 5px 4px;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+/* Organograma: conteúdo interno também respeita o limite do painel. */
+#equipes .organogram-panel {
+  overflow: hidden;
+}
+
+#equipes .free-org-area {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+#equipes .free-org-node {
+  width: min(100%, 560px);
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1180px) {
+  #equipes .management-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  #equipes .person .person-actions .btn {
+    font-size: 8.5px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+}
+
+@media (max-width: 900px) {
+  #equipes .management-layout {
+    grid-template-columns: 1fr;
+  }
+  #equipes .team-head {
+    grid-template-columns: 1fr;
+  }
+  #equipes .team-head .actions {
+    max-width: none;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 520px) {
+  #equipes .person {
+    grid-template-columns: 22px 40px minmax(0, 1fr);
+  }
+  #equipes .person .avatar {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+  #equipes .person .person-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  #equipes .collaborator-gallery {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><img id="brandLogo" alt="Logo da empresa"><div id="brandPlaceholder" class="placeholder">set<span>t</span>a</div></div>
+  <nav class="nav">
+    <button class="active" onclick="showView('dashboard',this)" id="navDashboard">▦ &nbsp; Dashboard</button>
+    <button onclick="showView('alimentar',this)" id="navFeed">✎ &nbsp; Alimentar indicadores</button>
+    <button onclick="showView('historico',this)" id="navHistory">◷ &nbsp; Histórico</button>
+    <button onclick="showView('equipes',this)" id="navTeams">♙ &nbsp; Gestão de equipes</button>
+    <button onclick="showView('config',this)" id="navConfig">⚙ &nbsp; Configurações</button>
+  </nav>
+  <div class="sidebar-footer" id="sidebarFooter">INDEX ALMOXARIFADO<br>Controle de indicadores operacionais</div>
+</aside>
+
+<main class="main">
+<header class="topbar">
+ <div class="title"><h1 id="appTitle">INDICADORES ALMOXARIFADO</h1><p id="periodText">Acompanhamento de desempenho</p></div>
+ <div class="period" id="periodBadge">MÊS ATUAL</div>
+</header>
+
+<section id="dashboard" class="view active">
+ <div class="section-title" id="accSectionTitle">01 · Acurácia de estoque</div>
+ <div class="cards cards3">
+   <div class="kpi"><div class="kpi-label" id="kpiAcc1">Ajustes realizados</div><div class="kpi-value" id="dAjustes">162</div></div>
+   <div class="kpi"><div class="kpi-label" id="kpiAcc2">Itens em estoque</div><div class="kpi-value" id="dItens">4.471</div></div>
+   <div class="kpi"><div class="kpi-label" id="kpiAcc3">Resultado</div><div class="kpi-value" id="dAcc">96,38%</div><div class="kpi-sub" id="dAccMeta">Meta 95,50%</div></div>
+ </div>
+ <div class="panel">
+  <div class="panel-head"><div class="panel-title" id="accChartTitle">Comparativo histórico</div><div class="chart-controls" id="accControls"></div></div>
+  <div class="legend"><span id="legendResult1">Resultado</span><span class="meta" id="legendMeta1">Meta</span></div>
+  <div class="chart" id="accChart"></div>
+ </div>
+
+ <div class="section-title" id="deliverySectionTitle" style="margin-top:30px">02 · Entregas no prazo</div>
+ <div class="cards cards4">
+   <div class="kpi"><div class="kpi-label" id="kpiDel1">Programados</div><div class="kpi-value" id="dProg">38</div></div>
+   <div class="kpi"><div class="kpi-label" id="kpiDel2">Atendidos 100%</div><div class="kpi-value" id="dAtend">21</div></div>
+   <div class="kpi"><div class="kpi-label" id="kpiDel3">Solicitações</div><div class="kpi-value" id="dSolic">2.052</div></div>
+   <div class="kpi"><div class="kpi-label" id="kpiDel4">Entregues em dia</div><div class="kpi-value" id="dDia">1.574</div></div>
+ </div>
+ <div class="panel">
+  <div class="metrics-row">
+   <div class="progress-wrap"><div class="progress-head"><span id="progressLabel1">PROJETOS ATENDIDOS</span><strong id="dProjPct">55,26%</strong></div><div class="progress"><div id="barProj"></div></div></div>
+   <div class="progress-wrap"><div class="progress-head"><span id="progressLabel2">ENTREGAS EM DIA</span><strong id="dDiaPct">76,71%</strong></div><div class="progress"><div id="barDia"></div></div></div>
+  </div>
+ </div>
+ <div class="panel">
+  <div class="panel-head"><div class="panel-title" id="deliveryChartTitle">Comparativo histórico</div><div class="chart-controls" id="deliveryControls"></div></div>
+  <div class="legend"><span id="legendResult2">Resultado</span><span class="meta" id="legendMeta2">Meta</span></div>
+  <div class="chart" id="deliveryChart"></div>
+ </div>
+ <div id="dynamicIndicators"></div>
+ <div class="panel">
+  <div class="panel-head"><div class="panel-title" id="summaryTitle">Comparativo consolidado</div></div>
+  <div class="table-wrap" id="summaryTable"></div>
+ </div>
+</section>
+
+<section id="alimentar" class="view">
+ <div class="section-title" id="feedTitle">Alimentar indicadores</div>
+ <div class="notice">Cada indicador aceita vários lançamentos no mesmo mês. Use <b>Histórico</b> para editar ou excluir lançamentos existentes.</div>
+ <div class="subnav" id="indicatorTabs"></div>
+ <div id="feedArea"></div>
+</section>
+
+<section id="historico" class="view">
+ <div class="section-title" id="historyTitle">Histórico</div>
+ <div class="panel">
+  <div class="panel-head"><div class="panel-title" id="historyPanelTitle">Fechamentos registrados</div><div class="toggle"><button id="historyLast" onclick="setHistoryMode(false)">Último lançamento</button><button id="historyAll" class="active" onclick="setHistoryMode(true)">Detalhado</button></div></div>
+  <div id="historyTable"></div>
+ </div>
+</section>
+
+<section id="equipes" class="view">
+ <div class="section-title" id="teamsTitle">Gestão de equipes</div>
+
+ <div class="panel collaborators-panel">
+  <div class="panel-head">
+   <div><div class="panel-title">COLABORADORES</div><div class="small-note">Cadastre aqui todos os colaboradores. Esta é a lista mestre usada para responsáveis, equipes e organograma.</div></div>
+   <div class="actions"><button class="btn btn-primary btn-small" onclick="openCollaboratorModal()">+ CADASTRAR COLABORADOR</button></div>
+  </div>
+  <div id="collaboratorGallery" class="collaborator-gallery"></div>
+ </div>
+
+ <div class="team-layout management-layout">
+  <div class="team-management-column">
+   <div class="panel">
+    <div class="panel-head"><div><div class="panel-title" id="teamsPanelTitle">Equipes do Almoxarifado</div><div class="small-note">Crie equipes e distribua os colaboradores cadastrados. O responsável é sempre selecionado da lista mestre.</div></div><div class="actions"><button class="btn btn-primary btn-small" onclick="openTeamModal()">+ NOVA EQUIPE</button></div></div>
+    <div class="team-grid" id="teamList"></div>
+   </div>
+  </div>
+
+  <div class="panel organogram-panel">
+   <div class="panel-head"><div><div class="panel-title">Organograma</div><div class="small-note">Selecione colaboradores da lista acima e organize livremente. Arraste um colaborador sobre outro para criar uma subordinação; arraste para o quadro para deixá-lo no nível raiz.</div></div></div>
+   <div class="org-toolbar"><button class="btn btn-small" onclick="clearFreeOrgSelection()">LIMPAR ORGANOGRAMA</button><button class="btn btn-primary btn-small" onclick="saveFreeOrg()">SALVAR ORGANOGRAMA</button></div>
+   <div id="freeOrgArea" class="free-org-area"><div class="empty">Selecione um colaborador acima para começar a montar o organograma.</div></div>
+  </div>
+ </div>
+</section>
+
+<section id="config" class="view">
+ <div class="section-title">Configurações</div>
+ <div class="panel">
+  <div class="panel-head"><div class="panel-title">Identidade visual</div></div>
+  <div class="logo-box">
+   <div class="logo-preview"><img id="logoPreview"></div>
+   <div style="flex:1"><div style="font-weight:800;font-size:13px">Logo da empresa</div><div class="notice">PNG, JPG ou WEBP. A logo fica salva neste navegador.</div><input id="logoInput" type="file" accept="image/png,image/jpeg,image/webp"></div>
+  </div>
+  <div class="form-grid" style="margin-top:15px">
+   <div class="field full"><label>Título do aplicativo</label><input id="appTitleInput"></div>
+  </div>
+  <div class="actions" style="margin-top:14px"><button class="btn btn-primary" onclick="saveConfig()">SALVAR CONFIGURAÇÕES</button><button class="btn" onclick="removeLogo()">REMOVER LOGO</button><button class="btn" onclick="exportData()">EXPORTAR BACKUP</button><input id="importFile" type="file" accept=".json" hidden onchange="importData(event)"><button class="btn" onclick="document.getElementById('importFile').click()">IMPORTAR BACKUP</button></div>
+ </div>
+
+ <div class="panel">
+  <div class="panel-head"><div class="panel-title">Administração de indicadores</div><button class="btn btn-primary btn-small" onclick="openIndicatorModal()">+ NOVO INDICADOR</button></div>
+  <div class="indicator-admin-grid" id="indicatorAdminList"></div>
+ </div>
+
+ <div class="panel">
+  <div class="panel-head"><div><div class="panel-title">Editar textos da tela principal</div><div class="small-note">Altere títulos, rótulos e textos sem mexer nos dados dos indicadores.</div></div></div>
+  <div class="config-section">
+   <h4>Cabeçalho e navegação</h4>
+   <div class="form-grid">
+    <div class="field"><label>Subtítulo do cabeçalho</label><input id="txtSubtitle"></div>
+    <div class="field"><label>Texto do rodapé — linha 1</label><input id="txtFooter1"></div>
+    <div class="field"><label>Texto do rodapé — linha 2</label><input id="txtFooter2"></div>
+    <div class="field"><label>Menu: Dashboard</label><input id="txtNavDashboard"></div>
+    <div class="field"><label>Menu: Alimentar indicadores</label><input id="txtNavFeed"></div>
+    <div class="field"><label>Menu: Histórico</label><input id="txtNavHistory"></div>
+    <div class="field"><label>Menu: Gestão de equipes</label><input id="txtNavTeams"></div>
+    <div class="field"><label>Menu: Configurações</label><input id="txtNavConfig"></div>
+   </div>
+  </div>
+  <div class="config-section">
+   <h4>Indicador 01</h4>
+   <div class="form-grid">
+    <div class="field"><label>Título da seção</label><input id="txtAccSection"></div>
+    <div class="field"><label>Título do gráfico</label><input id="txtAccChart"></div>
+    <div class="field"><label>KPI 1</label><input id="txtAccKpi1"></div>
+    <div class="field"><label>KPI 2</label><input id="txtAccKpi2"></div>
+    <div class="field"><label>KPI 3</label><input id="txtAccKpi3"></div>
+   </div>
+  </div>
+  <div class="config-section">
+   <h4>Indicador 02</h4>
+   <div class="form-grid">
+    <div class="field"><label>Título da seção</label><input id="txtDelSection"></div>
+    <div class="field"><label>Título do gráfico</label><input id="txtDelChart"></div>
+    <div class="field"><label>KPI 1</label><input id="txtDelKpi1"></div>
+    <div class="field"><label>KPI 2</label><input id="txtDelKpi2"></div>
+    <div class="field"><label>KPI 3</label><input id="txtDelKpi3"></div>
+    <div class="field"><label>KPI 4</label><input id="txtDelKpi4"></div>
+    <div class="field"><label>Barra 1</label><input id="txtProg1"></div>
+    <div class="field"><label>Barra 2</label><input id="txtProg2"></div>
+   </div>
+  </div>
+  <div class="config-section">
+   <h4>Legendas e consolidado</h4>
+   <div class="form-grid">
+    <div class="field"><label>Legenda: Resultado</label><input id="txtLegendResult"></div>
+    <div class="field"><label>Legenda: Meta</label><input id="txtLegendMeta"></div>
+    <div class="field"><label>Título do consolidado</label><input id="txtSummary"></div>
+    <div class="field"><label>Título da aba Alimentar</label><input id="txtFeedTitle"></div>
+    <div class="field"><label>Título da aba Histórico</label><input id="txtHistoryTitle"></div>
+    <div class="field"><label>Título da aba Equipes</label><input id="txtTeamsTitle"></div>
+   </div>
+  </div>
+  <div class="actions" style="margin-top:18px"><button class="btn btn-primary" onclick="saveTexts()">SALVAR TEXTOS DA TELA</button></div>
+ </div>
+</section>
+</main>
+</div>
+
+<!-- Modais -->
+<div class="modal" id="indicatorModal"><div class="modal-box"><div class="modal-head"><h3 id="indicatorModalTitle">Novo indicador</h3><button class="close" onclick="closeModal('indicatorModal')">×</button></div><div class="form-grid"><div class="field"><label>Nome</label><input id="iName"></div><div class="field"><label>Unidade</label><select id="iUnit"><option value="%">Percentual (%)</option><option value="n">Número</option><option value="h">Horas</option><option value="R$">Valor (R$)</option></select></div><div class="field"><label>Meta padrão</label><input id="iTarget" type="number" step=".01"></div><div class="field"><label>Periodicidade</label><select id="iPeriod"><option>Mensal</option><option>Semanal</option><option>Diária</option><option>Trimestral</option></select></div><div class="field full"><label>Descrição</label><textarea id="iDesc"></textarea></div></div><div class="modal-actions"><button class="btn" onclick="closeModal('indicatorModal')">CANCELAR</button><button class="btn btn-primary" onclick="saveIndicator()">SALVAR INDICADOR</button></div></div></div>
+
+<div class="modal" id="recordsModal"><div class="modal-box"><div class="modal-head"><h3 id="recordsTitle">Histórico</h3><button class="close" onclick="closeModal('recordsModal')">×</button></div><div class="small-note">Vários lançamentos no mesmo mês são permitidos. Você pode editar ou excluir cada linha.</div><div id="recordsRows" style="margin-top:15px"></div><button class="btn btn-small" onclick="addRecord()">+ ADICIONAR LANÇAMENTO</button><div class="modal-actions"><button class="btn" onclick="closeModal('recordsModal')">CANCELAR</button><button class="btn btn-primary" onclick="saveRecords()">SALVAR ALTERAÇÕES</button></div></div></div>
+
+<div class="modal" id="collaboratorModal"><div class="modal-box">
+<div class="modal-head"><h3 id="collaboratorModalTitle">Cadastrar colaborador</h3><button class="close" onclick="closeModal('collaboratorModal')">×</button></div>
+<div class="notice" style="margin-bottom:14px">Cadastre a pessoa uma única vez. Depois ela poderá ser escolhida como responsável, adicionada a qualquer equipe e incluída no organograma.</div>
+<div class="form-grid">
+ <div class="field"><label>Nome</label><input id="cName" autocomplete="off"></div>
+ <div class="field"><label>Função / cargo</label><input id="cRole" autocomplete="off"></div>
+ <div class="field full"><label>Foto</label><input id="cPhoto" type="file" accept="image/*"></div>
+</div>
+<div id="collaboratorSaveStatus" class="small-note" style="margin-top:10px;min-height:18px"></div>
+<div class="modal-actions"><button class="btn" onclick="closeModal('collaboratorModal')">CANCELAR</button><button class="btn btn-primary" id="saveCollaboratorBtn" onclick="saveCollaborator()">SALVAR COLABORADOR</button></div>
+</div></div>
+
+<div class="modal" id="teamModal"><div class="modal-box"><div class="modal-head"><h3 id="teamModalTitle">Nova equipe</h3><button class="close" onclick="closeModal('teamModal')">×</button></div><div class="form-grid"><div class="field"><label>Nome da equipe</label><input id="tName"></div><div class="field"><label>Responsável</label><select id="tLeaderPerson"></select><input id="tLeader" type="hidden"></div><div class="field full"><label>Foto do responsável</label><input id="tLeaderPhoto" type="file" accept="image/*"></div><div class="field full"><label>Objetivo / descrição</label><textarea id="tDesc"></textarea></div><div class="field full"><label>Tarefas da equipe — uma por linha</label><textarea id="tTasks"></textarea></div></div><div class="modal-actions"><button class="btn" onclick="closeModal('teamModal')">CANCELAR</button><button class="btn btn-primary" onclick="saveTeam()">SALVAR EQUIPE</button></div></div></div>
+
+<div class="modal" id="personModal"><div class="modal-box">
+<div class="modal-head"><h3 id="personModalTitle">Adicionar colaborador</h3><button class="close" onclick="closeModal('personModal')">×</button></div>
+<div class="notice" style="margin-bottom:14px">Você pode cadastrar uma pessoa nova ou colocar um colaborador já cadastrado dentro desta equipe.</div>
+<div class="form-grid">
+ <div class="field full"><label>Modo</label><select id="pMode" onchange="togglePersonMode()"><option value="new">Novo colaborador</option><option value="existing">Colaborador existente</option></select></div>
+ <div class="field full hidden" id="existingPersonWrap"><label>Colaborador existente</label><select id="pExisting"></select></div>
+ <div class="field"><label>Nome</label><input id="pName"></div>
+ <div class="field"><label>Função / cargo</label><input id="pRole"></div>
+ <div class="field full"><label>Foto</label><input id="pPhoto" type="file" accept="image/*"></div>
+</div>
+<div class="small-note" id="personDestinationNote" style="margin-top:10px"></div>
+<div class="small-note" id="personSaveStatus" style="margin-top:8px;min-height:18px"></div>
+<div class="modal-actions"><button class="btn" onclick="closeModal('personModal')">CANCELAR</button><button id="savePersonBtn" class="btn btn-primary" onclick="savePerson()">SALVAR COLABORADOR</button></div>
+</div></div>
+
+<div class="modal" id="orphanModal"><div class="modal-box"><div class="modal-head"><h3>Pessoa avulsa no organograma</h3><button class="close" onclick="closeModal('orphanModal')">×</button></div><div class="notice" style="margin-bottom:14px">A pessoa será salva separadamente das equipes e aparecerá no organograma como <b>Pessoa avulsa</b>.</div><div class="form-grid"><div class="field"><label>Nome</label><input id="oName" autocomplete="off"></div><div class="field"><label>Função / cargo</label><input id="oRole" autocomplete="off"></div><div class="field full"><label>Foto (opcional)</label><input id="oPhoto" type="file" accept="image/*"></div></div><div id="orphanSaveStatus" class="small-note" style="margin-top:10px;min-height:18px"></div><div class="modal-actions"><button class="btn" onclick="closeModal('orphanModal')">CANCELAR</button><button id="saveOrphanBtn" class="btn btn-primary" onclick="saveOrphan()">SALVAR PESSOA AVULSA</button></div></div></div>
+
+
+<div class="modal" id="orgEditorModal">
+ <div class="modal-box">
+  <div class="modal-head">
+   <h3>Editar organograma</h3>
+   <button class="close" onclick="closeModal('orgEditorModal')">×</button>
+  </div>
+
+  <div class="notice">Altere o responsável, a foto e a ordem dos colaboradores. As alterações são salvas no mesmo banco de dados do aplicativo.</div>
+
+  <div class="org-editor-responsible">
+   <div class="org-editor-title"><strong>RESPONSÁVEL DA EQUIPE</strong><span class="small-note">Nível principal</span></div>
+   <div class="form-grid">
+    <div class="field"><label>Responsável cadastrado</label><select id="orgLeaderPerson"></select><input id="orgLeaderName" type="hidden"></div>
+    <div class="field"><label>Foto do responsável</label><input id="orgLeaderPhoto" type="file" accept="image/*"></div>
+   </div>
+  </div>
+
+  <div class="org-editor-responsible">
+   <div class="org-editor-title">
+    <strong>COLABORADORES / AUXILIARES</strong>
+    <button class="btn btn-primary btn-small" onclick="openPersonModal(currentOrgEditorTeamId)">+ COLABORADOR</button>
+   </div>
+   <div class="small-note" style="margin-top:6px">Defina a ordem e, quando necessário, o responsável direto de cada colaborador.</div>
+   <div id="orgEditorPeople" class="org-editor-list"></div>
+  </div>
+
+  <div class="modal-actions">
+   <button class="btn" onclick="closeModal('orgEditorModal')">CANCELAR</button>
+   <button class="btn btn-primary" onclick="saveOrgEditor()">SALVAR ORGANOGRAMA</button>
+  </div>
+ </div>
+</div>
+
+<div class="modal" id="orgPersonEditModal">
+ <div class="modal-box">
+  <div class="modal-head">
+   <h3>Editar colaborador</h3>
+   <button class="close" onclick="closeModal('orgPersonEditModal')">×</button>
+  </div>
+  <div class="form-grid">
+   <div class="field"><label>Nome</label><input id="orgPersonName"></div>
+   <div class="field"><label>Função / cargo</label><input id="orgPersonRole"></div>
+   <div class="field full"><label>Nova foto (opcional)</label><input id="orgPersonPhoto" type="file" accept="image/*"></div>
+  </div>
+  <div class="small-note" style="margin-top:8px">Se não escolher uma nova foto, a foto atual será mantida.</div>
+  <div class="modal-actions">
+   <button class="btn" onclick="closeModal('orgPersonEditModal')">CANCELAR</button>
+   <button class="btn btn-primary" onclick="saveOrgPersonEdit()">SALVAR ALTERAÇÕES</button>
+  </div>
+ </div>
+</div>
+
+<div class="modal" id="macroOrgModal">
+ <div class="modal-box" style="width:min(1100px,100%)">
+  <div class="modal-head"><h3>Organograma macro</h3><button class="close" onclick="closeModal('macroOrgModal')">×</button></div>
+  <div class="notice">Estrutura de nível gerencial: um ponto central e todas as equipes abaixo, mostrando os respectivos responsáveis. A ordem das equipes pode ser alterada.</div>
+  <div class="form-grid">
+   <div class="field"><label>Título do organograma</label><input id="macroOrgTitle"></div>
+   <div class="field"><label>Estrutura principal / raiz</label><input id="macroOrgRoot"></div>
+  </div>
+  <div class="org-editor-responsible" style="margin-top:14px">
+   <div class="org-editor-title"><strong>ORDEM DAS EQUIPES</strong><span class="small-note">Use ↑ e ↓</span></div>
+   <div id="macroTeamOrder" class="org-editor-list"></div>
+  </div>
+  <div class="org-editor-responsible" style="margin-top:14px">
+   <div class="org-editor-title">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><strong>DISTRIBUIÇÃO DOS COLABORADORES</strong><span class="small-note" id="macroPeopleCount"></span></div>
+    <button class="btn btn-primary btn-small" type="button" onclick="openOrphanModalFromMacro()">+ PESSOA AVULSA</button>
+   </div>
+   <div class="small-note" style="margin-top:6px">Todos os colaboradores e pessoas avulsas aparecem abaixo. Escolha a equipe/localização de cada pessoa.</div>
+   <div id="macroPeopleList" style="margin-top:10px"></div>
+  </div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal('macroOrgModal')">CANCELAR</button><button class="btn btn-primary" onclick="saveMacroOrg()">SALVAR ORGANOGRAMA MACRO</button></div>
+  <div id="macroOrgPreview" style="margin-top:18px"></div>
+ </div>
+</div>
+
+<div class="modal" id="metricModal"><div class="modal-box"><div class="modal-head"><h3>Nova métrica da equipe</h3><button class="close" onclick="closeModal('metricModal')">×</button></div><div class="form-grid"><div class="field"><label>Métrica</label><input id="mName"></div><div class="field"><label>Meta</label><input id="mTarget" type="number" step=".01"></div><div class="field"><label>Resultado</label><input id="mValue" type="number" step=".01"></div><div class="field"><label>Unidade</label><input id="mUnit" placeholder="% / pedidos / horas"></div></div><div class="modal-actions"><button class="btn" onclick="closeModal('metricModal')">CANCELAR</button><button class="btn btn-primary" onclick="saveMetric()">SALVAR MÉTRICA</button></div></div></div>
+
+<script>
+const KEY='indexAlmoxPro';
+const base={
+ accuracy:[['30/01',96.19,92],['28/02',95.09,92.5],['26/03',96.06,93],['09/04',98.77,93.5],['23/04',98.21,93.5],['13/05',99.47,94],['16/07',97.10,95],['30/07',97.06,95],['13/08',96.38,95.5]],
+ delivery:[['30/01',42.21,25.6],['28/02',30.96,28.2],['26/03',38.37,30.8],['09/04',36.32,33.4],['23/04',37.07,33.4],['13/05',35.64,36],['16/07',50.33,41.2],['30/07',57.71,41.2],['13/08',42.39,43.8]],
+ current:{acc:96.38,meta:95.5,ajustes:162,itens:4471,prog:38,atend:21,solic:2052,dia:1574,proj:55.26,diaPct:76.71},
+ title:'INDICADORES ALMOXARIFADO',logo:'',
+ indicators:[
+  {id:'acc',name:'Acurácia de Estoque',unit:'%',target:95.5,period:'Mensal',desc:'Conferência entre estoque físico e sistema.',records:[]},
+  {id:'delivery',name:'Entregas no Prazo',unit:'%',target:43.8,period:'Mensal',desc:'Projetos atendidos e entregas dentro do prazo.',records:[]},
+  {id:'ind3',name:'Indicador 03',unit:'%',target:95,period:'Mensal',desc:'Indicador disponível para configuração.',records:[]}
+ ],
+ teams:[],orphanPeople:[],
+ texts:{
+  subtitle:'Acompanhamento de desempenho',
+  footer1:'INDEX ALMOXARIFADO',footer2:'Controle de indicadores operacionais',
+  navDashboard:'▦  Dashboard',navFeed:'✎  Alimentar indicadores',navHistory:'◷  Histórico',navTeams:'♙  Gestão de equipes',navConfig:'⚙  Configurações',
+  accSection:'01 · Acurácia de estoque',accChart:'Comparativo histórico',
+  accKpi1:'Ajustes realizados',accKpi2:'Itens em estoque',accKpi3:'Resultado',
+  delSection:'02 · Entregas no prazo',delChart:'Comparativo histórico',
+  delKpi1:'Programados',delKpi2:'Atendidos 100%',delKpi3:'Solicitações',delKpi4:'Entregues em dia',
+  prog1:'PROJETOS ATENDIDOS',prog2:'ENTREGAS EM DIA',
+  legendResult:'Resultado',legendMeta:'Meta',summary:'Comparativo consolidado',
+  feedTitle:'Alimentar indicadores',historyTitle:'Histórico',teamsTitle:'Gestão de equipes'
+ }
+};
+const clone=o=>JSON.parse(JSON.stringify(o));
+const pad=n=>String(n).padStart(2,'0');
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const fmt=v=>Number(v).toLocaleString('pt-BR');
+const pct=v=>Number(v).toFixed(2).replace('.',',')+'%';
+function fmtUnit(v,u){if(u==='%')return pct(v);if(u==='R$')return 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2});return Number(v).toLocaleString('pt-BR')+(u==='n'?'':' '+u)}
+function short(d){const x=new Date(d+'T12:00:00');return pad(x.getDate())+'/'+pad(x.getMonth()+1)}
+function legacy(s){const m=String(s).match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{4}))?$/);return m?`${m[3]||new Date().getFullYear()}-${pad(m[2])}-${pad(m[1])}`:new Date().toISOString().slice(0,10)}
+function norm(a,t){return(a||[]).map(r=>Array.isArray(r)?{date:legacy(r[0]),value:+r[1]||0,target:+(r[2]??t)||0}:{date:r.date||legacy(r.label),value:+r.value||0,target:+(r.target??t)||0}).filter(r=>r.date)}
+function monthLabel(){return new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'}).replace(/^./,m=>m.toUpperCase())}
+function monthBadge(){return monthLabel().toUpperCase()}
+
+function load(){
+ let s=JSON.parse(localStorage.getItem(KEY)||'null')||clone(base);
+ s.title=s.title||base.title;s.logo=s.logo||'';s.teams=s.teams||[];s.orphanPeople=s.orphanPeople||[];s.collaborators=s.collaborators||[];
+ s.indicators=s.indicators||clone(base.indicators);
+ if(!s.indicators.some(i=>String(i.id)==='acc'))s.indicators.unshift(clone(base.indicators[0]));
+ if(!s.indicators.some(i=>String(i.id)==='delivery'))s.indicators.splice(1,0,clone(base.indicators[1]));
+ s.indicators.forEach(i=>i.records=norm(i.records,i.target));
+ let a=s.indicators.find(i=>String(i.id)==='acc'),d=s.indicators.find(i=>String(i.id)==='delivery');
+ if(a&&(!a.records.length||s.accuracy))a.records=norm(s.accuracy||base.accuracy,a.target);
+ if(d&&(!d.records.length||s.delivery))d.records=norm(s.delivery||base.delivery,d.target);
+ s.teams.forEach(t=>{
+  t.people=t.people||[];t.metrics=t.metrics||[];t.tasks=t.tasks||[];
+  t.people.forEach((p,idx)=>{p.id=p.id||('p'+Date.now()+'_'+idx);p.name=p.name||'Colaborador';p.role=p.role||'';p.photo=p.photo||'';p.parentId=p.parentId||''});
+ });
+ const registered=[];s.teams.forEach(t=>(t.people||[]).forEach(p=>registered.push({p,t})));
+ s.teams.forEach(t=>{if(!t.leaderPersonId){const hit=registered.find(x=>String(x.p.name||'').trim().toLowerCase()===String(t.leader||'').trim().toLowerCase());if(hit){t.leaderPersonId=hit.p.id;t.leader=hit.p.name;t.leaderPhoto=hit.p.photo||t.leaderPhoto||'';}}});
+ s.orphanPeople=s.orphanPeople||[];
+ s.orphanPeople.forEach((p,idx)=>{p.id=p.id||('o'+Date.now()+'_'+idx);p.name=p.name||'Pessoa avulsa';p.role=p.role||'';p.photo=p.photo||''});
+ const masterById=new Map((s.collaborators||[]).map(p=>[String(p.id),p]));
+ s.teams.forEach(t=>(t.people||[]).forEach(p=>{masterById.set(String(p.id),Object.assign(masterById.get(String(p.id))||{},p,{id:String(p.id),teamId:String(t.id)}));}));
+ s.orphanPeople.forEach(p=>{masterById.set(String(p.id),Object.assign(masterById.get(String(p.id))||{},p,{id:String(p.id),teamId:''}));});
+ s.collaborators=[...masterById.values()].map(p=>({id:String(p.id),name:p.name||'Colaborador',role:p.role||'',photo:p.photo||'',teamId:p.teamId?String(p.teamId):''}));
+ s.freeOrg=Object.assign({selected:[],parents:{},order:[]},s.freeOrg||{});
+ s.freeOrg.selected=(s.freeOrg.selected||[]).filter(id=>s.collaborators.some(p=>String(p.id)===String(id)));
+ s.freeOrg.order=(s.freeOrg.order||[]).filter(id=>s.freeOrg.selected.includes(String(id)));
+ s.freeOrg.selected.forEach(id=>{if(!s.freeOrg.order.includes(String(id)))s.freeOrg.order.push(String(id));});
+ s.texts=Object.assign({},base.texts,s.texts||{});
+ s.macroOrg=Object.assign({title:'ORGANOGRAMA MACRO',root:'ALMOXARIFADO',teamOrder:[]},s.macroOrg||{});
+ if(!Array.isArray(s.macroOrg.teamOrder)||!s.macroOrg.teamOrder.length)s.macroOrg.teamOrder=s.teams.map(t=>String(t.id));
+ s.teams.forEach(t=>{if(!s.macroOrg.teamOrder.includes(String(t.id)))s.macroOrg.teamOrder.push(String(t.id))});
+ s.macroOrg.teamOrder=s.macroOrg.teamOrder.filter(id=>s.teams.some(t=>String(t.id)===String(id)));
+ return s;
+}
+let state=load(),feedIndex=0,currentRecordsId=null,editIndicatorId=null,editTeamId=null,currentTeamId=null,historyDetailed=true;
+const chartModes={};
+
+/* =========================================================
+   ARMAZENAMENTO ROBUSTO DE IMAGENS
+   - Os dados continuam no localStorage para preservar a estrutura original.
+   - Fotos/logo são guardadas no IndexedDB e substituídas por referências leves
+     no JSON salvo. Isso evita o limite de ~5 MB do localStorage.
+   - Compatível com dados antigos que ainda tenham imagens em base64.
+   ========================================================= */
+const IMAGE_DB='almoxarifado_imagens_v1';
+const IMAGE_STORE='imagens';
+let imageDbPromise=null;
+function openImageDB(){
+ if(!('indexedDB' in window)) return Promise.reject(new Error('IndexedDB indisponível'));
+ if(imageDbPromise)return imageDbPromise;
+ imageDbPromise=new Promise((resolve,reject)=>{
+   const req=indexedDB.open(IMAGE_DB,1);
+   req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(IMAGE_STORE))req.result.createObjectStore(IMAGE_STORE)};
+   req.onsuccess=()=>resolve(req.result);
+   req.onerror=()=>reject(req.error||new Error('Não foi possível abrir o armazenamento de imagens.'));
+ });
+ return imageDbPromise;
+}
+function putImage(key,data){
+ if(!data||typeof data!=='string'||!data.startsWith('data:'))return Promise.resolve();
+ return openImageDB().then(db=>new Promise((resolve,reject)=>{
+   const tx=db.transaction(IMAGE_STORE,'readwrite');
+   tx.objectStore(IMAGE_STORE).put(data,key);
+   tx.oncomplete=()=>resolve();
+   tx.onerror=()=>reject(tx.error||new Error('Falha ao guardar imagem.'));
+ }));
+}
+function getImage(key){
+ return openImageDB().then(db=>new Promise((resolve,reject)=>{
+   const tx=db.transaction(IMAGE_STORE,'readonly');
+   const req=tx.objectStore(IMAGE_STORE).get(key);
+   req.onsuccess=()=>resolve(req.result||'');
+   req.onerror=()=>reject(req.error||new Error('Falha ao ler imagem.'));
+ })).catch(()=> '');
+}
+function imageToken(kind,id){return `__IDB_IMAGE__:${kind}:${id}`;}
+function prepareStorageSnapshot(){
+ const snapshot=JSON.parse(JSON.stringify(state));
+ const writes=[];
+ const register=(obj,field,kind,id)=>{
+   if(!obj||typeof obj[field]!=='string')return;
+   const value=obj[field];
+   if(!value)return;
+   if(value.startsWith('data:')){
+     const key=imageToken(kind,id);
+     writes.push(putImage(key,value).catch(()=>{}));
+     obj[field]=key;
+   }
+ };
+ snapshot.teams=(snapshot.teams||[]).map(t=>{
+   register(t,'leaderPhoto','teamLeader',t.id);
+   (t.people||[]).forEach(p=>register(p,'photo','person',p.id));
+   return t;
+ });
+ (snapshot.orphanPeople||[]).forEach(p=>register(p,'photo','orphan',p.id));
+ (snapshot.collaborators||[]).forEach(p=>register(p,'photo','collaborator',p.id));
+ register(snapshot,'logo','logo','app');
+ return {snapshot,writes};
+}
+function save(){
+ state.accuracy=(state.indicators.find(i=>String(i.id)==='acc')?.records||[]).map(r=>[short(r.date),r.value,r.target]);
+ state.delivery=(state.indicators.find(i=>String(i.id)==='delivery')?.records||[]).map(r=>[short(r.date),r.value,r.target]);
+ let payload='';
+ try{
+   const prepared=prepareStorageSnapshot();
+   payload=JSON.stringify(prepared.snapshot);
+   try{
+     localStorage.setItem(KEY,payload);
+   }catch(firstErr){
+     // O registro antigo pode estar ocupando todo o espaço disponível.
+     // Remove somente a versão anterior e tenta gravar novamente a versão compacta.
+     const previous=localStorage.getItem(KEY);
+     localStorage.removeItem(KEY);
+     try{
+       localStorage.setItem(KEY,payload);
+     }catch(secondErr){
+       if(previous!==null){try{localStorage.setItem(KEY,previous)}catch(_){}}
+       throw secondErr;
+     }
+   }
+   Promise.all(prepared.writes).then(()=>{}).catch(()=>{});
+   return true;
+ }catch(err){
+   console.error('Falha ao salvar os dados:',err);
+   return false;
+ }
+}
+async function hydrateImages(){
+ let changed=false;
+ const hydrate=(obj,field)=>{
+   if(!obj||typeof obj[field]!=='string')return Promise.resolve();
+   const v=obj[field];
+   if(!v.startsWith('__IDB_IMAGE__:'))return Promise.resolve();
+   return getImage(v).then(img=>{if(img){obj[field]=img;changed=true;}});
+ };
+ const jobs=[];
+ (state.teams||[]).forEach(t=>{
+   jobs.push(hydrate(t,'leaderPhoto'));
+   (t.people||[]).forEach(p=>jobs.push(hydrate(p,'photo')));
+ });
+ (state.orphanPeople||[]).forEach(p=>jobs.push(hydrate(p,'photo')));
+ (state.collaborators||[]).forEach(p=>jobs.push(hydrate(p,'photo')));
+ jobs.push(hydrate(state,'logo'));
+ await Promise.all(jobs);
+ if(changed){render();renderBrand();renderTeams();}
+}
+function current(ind){
+ const ym=new Date().toISOString().slice(0,7);
+ const a=(ind?.records||[]).slice().sort((x,y)=>x.date.localeCompare(y.date));
+ return a.find(r=>r.date.slice(0,7)===ym)||a.at(-1)||null;
+}
+function showView(id,b){
+ document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');
+ document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));if(b)b.classList.add('active');
+ if(id==='dashboard')render();if(id==='alimentar')renderFeed();if(id==='historico')renderHistory();if(id==='equipes')renderTeams();if(id==='config')loadConfigForm();
+}
+function render(){
+ const c=state.current||base.current,a=state.indicators.find(i=>String(i.id)==='acc'),d=state.indicators.find(i=>String(i.id)==='delivery'),r=current(a)||{value:c.acc,target:c.meta};
+ periodBadge.textContent=monthBadge();periodText.textContent=state.texts.subtitle+' · '+monthLabel();
+ dAjustes.textContent=fmt(c.ajustes);dItens.textContent=fmt(c.itens);dAcc.textContent=fmtUnit(r.value,a.unit);dAccMeta.textContent='Meta '+fmtUnit(r.target,a.unit);
+ dProg.textContent=fmt(c.prog);dAtend.textContent=fmt(c.atend);dSolic.textContent=fmt(c.solic);dDia.textContent=fmt(c.dia);
+ dProjPct.textContent=pct(c.proj);dDiaPct.textContent=pct(c.diaPct);barProj.style.width=Math.min(100,Math.max(0,c.proj))+'%';barDia.style.width=Math.min(100,Math.max(0,c.diaPct))+'%';
+ applyTexts();chart(a,'accChart','accControls');chart(d,'deliveryChart','deliveryControls');dynamic();summary();admin();renderBrand();document.title=state.title;appTitle.textContent=state.title;
+}
+function applyTexts(){
+ const t=state.texts;
+ const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
+ set('navDashboard',t.navDashboard);set('navFeed',t.navFeed);set('navHistory',t.navHistory);set('navTeams',t.navTeams);set('navConfig',t.navConfig);
+ set('sidebarFooter',t.footer1+'\\n'+t.footer2);
+ set('accSectionTitle',t.accSection);set('accChartTitle',t.accChart);set('kpiAcc1',t.accKpi1);set('kpiAcc2',t.accKpi2);set('kpiAcc3',t.accKpi3);
+ set('deliverySectionTitle',t.delSection);set('deliveryChartTitle',t.delChart);set('kpiDel1',t.delKpi1);set('kpiDel2',t.delKpi2);set('kpiDel3',t.delKpi3);set('kpiDel4',t.delKpi4);
+ set('progressLabel1',t.prog1);set('progressLabel2',t.prog2);set('legendResult1',t.legendResult);set('legendMeta1',t.legendMeta);set('legendResult2',t.legendResult);set('legendMeta2',t.legendMeta);set('summaryTitle',t.summary);
+ set('feedTitle',t.feedTitle);set('historyTitle',t.historyTitle);set('teamsTitle',t.teamsTitle);set('navFeed',t.navFeed);
+}
+function grouped(rs){const m=new Map();rs.forEach(r=>{const k=r.date.slice(0,7),p=m.get(k);if(!p||r.date>p.date)m.set(k,r)});return[...m.values()].sort((a,b)=>a.date.localeCompare(b.date))}
+function chart(ind,id,cid){
+ const el=document.getElementById(id),ct=document.getElementById(cid);if(!el||!ind)return;
+ const mode=chartModes[ind.id]||'all';
+ ct.innerHTML=`<div class="toggle"><button class="${mode==='all'?'active':''}" onclick="chartModes['${ind.id}']='all';chart(state.indicators.find(i=>String(i.id)==='${ind.id}'),'${id}','${cid}')">TOTAL DE LANÇAMENTOS</button><button class="${mode==='month'?'active':''}" onclick="chartModes['${ind.id}']='month';chart(state.indicators.find(i=>String(i.id)==='${ind.id}'),'${id}','${cid}')">AGRUPADO MÊS A MÊS</button></div>`;
+ let rs=(mode==='month'?grouped(ind.records):ind.records.slice()).sort((a,b)=>a.date.localeCompare(b.date));
+ el.innerHTML='';
+ if(!rs.length){el.innerHTML='<div class="empty">Nenhum lançamento cadastrado para este indicador.</div>';return}
+ const max=Math.max(100,...rs.map(r=>+r.value||0),...rs.map(r=>+r.target||0));
+ const chartHeight=245;
+ const inner=document.createElement('div');inner.className='chart-inner';
+ [100,80,60,40,20,0].forEach(v=>{const g=document.createElement('div');g.className='gridline';g.style.bottom=(30+v*2.8)+'px';g.innerHTML=`<span class="gridlabel">${ind.unit==='%'?v+'%':Math.round(max*v/100)}</span>`;inner.appendChild(g)});
+ rs.forEach(r=>{
+   const value=Number(r.value)||0,target=Number(r.target)||0;
+   const barPx=Math.max(4,Math.min(chartHeight,value/max*chartHeight));
+   const targetPx=Math.max(0,Math.min(chartHeight,target/max*chartHeight));
+   const x=document.createElement('div');x.className='bar-item';
+   x.innerHTML=`<div class="bar-wrap"><div class="bar" style="height:${barPx}px"><span class="bar-value">${fmtUnit(value,ind.unit)}</span></div><div class="meta-line" style="bottom:${targetPx}px"><span class="meta-value">${fmtUnit(target,ind.unit)}</span></div></div><div class="date">${short(r.date)}</div>`;
+   inner.appendChild(x);
+ });
+ el.appendChild(inner);
+}
+function dynamic(){
+ const w=document.getElementById('dynamicIndicators');w.innerHTML='';
+ state.indicators.slice(2).forEach((i,n)=>{
+  const s=document.createElement('div');
+  s.innerHTML=`<div class="section-title" style="margin-top:30px">${pad(n+3)} · ${esc(i.name)}</div><div class="panel"><div class="panel-head"><div><div class="panel-title">${esc(i.name)}</div><div class="small-note">${esc(i.desc||'')}</div></div><div id="c-${i.id}"></div></div><div class="legend"><span>${esc(state.texts.legendResult)}</span><span class="meta">${esc(state.texts.legendMeta)}</span></div><div class="chart" id="g-${i.id}"></div></div>`;
+  w.appendChild(s);chart(i,'g-'+i.id,'c-'+i.id);
+ });
+}
+function summary(){
+ let dates=new Set;state.indicators.forEach(i=>(i.records||[]).forEach(r=>dates.add(r.date)));
+ let h='<th>Data</th>';state.indicators.forEach(i=>h+=`<th>${esc(i.name)}</th><th>Meta</th>`);
+ let rows=[...dates].sort().map(d=>'<tr><td>'+short(d)+'</td>'+state.indicators.map(i=>{const r=i.records.filter(x=>x.date===d).at(-1);return `<td>${r?'<strong>'+fmtUnit(r.value,i.unit)+'</strong>':'-'}</td><td>${r?fmtUnit(r.target,i.unit):'-'}</td>`}).join('')+'</tr>').join('');
+ summaryTable.innerHTML=rows?`<table><thead><tr>${h}</tr></thead><tbody>${rows}</tbody></table>`:'<div class="empty">Nenhum lançamento cadastrado.</div>';
+}
+function renderFeed(){
+ indicatorTabs.innerHTML='';
+ state.indicators.forEach((i,n)=>{const b=document.createElement('button');b.className='indicator-tab '+(n===feedIndex?'active':'');b.textContent=i.name;b.onclick=()=>{feedIndex=n;renderFeed()};indicatorTabs.appendChild(b)});
+ const i=state.indicators[feedIndex];if(!i)return;
+ feedArea.innerHTML=`<div class="feed-card" style="padding:18px"><div class="panel-head"><div><div class="panel-title">${esc(i.name)}</div><div class="small-note">${esc(i.desc||'')}</div></div><div class="actions"><button class="btn btn-small" onclick="openRecords('${i.id}')">EDITAR HISTÓRICO</button><button class="btn btn-primary btn-small" onclick="openIndicatorModal('${i.id}')">EDITAR INDICADOR</button></div></div><div class="form-grid" style="margin-top:15px"><div class="field"><label>Data do lançamento</label><input id="gDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div><div class="field"><label>Resultado</label><input id="gValue" type="number" step=".01"></div><div class="field"><label>Meta</label><input id="gTarget" type="number" step=".01" value="${i.target}"></div><div class="field"><label>Unidade</label><input value="${esc(i.unit)}" disabled></div></div><div class="actions" style="margin-top:14px"><button class="btn btn-primary" onclick="saveGeneric()">SALVAR LANÇAMENTO</button></div></div>`;
+}
+function saveGeneric(){
+ const i=state.indicators[feedIndex],d=gDate.value;if(!d)return alert('Informe a data.');
+ const r={date:d,value:+gValue.value||0,target:+gTarget.value||0};i.records.push(r);i.records.sort((a,b)=>a.date.localeCompare(b.date));i.target=r.target;save();render();renderFeed();
+}
+function openRecords(id){
+ currentRecordsId=id;const i=state.indicators.find(x=>String(x.id)===String(id));recordsTitle.textContent='Histórico · '+i.name;recordsRows.innerHTML='';
+ i.records.slice().sort((a,b)=>a.date.localeCompare(b.date)).forEach(r=>addRecordRow(r));if(!i.records.length)recordsRows.innerHTML='<div class="empty">Nenhum lançamento cadastrado.</div>';openModal('recordsModal');
+}
+function addRecordRow(r={date:new Date().toISOString().slice(0,10),value:0,target:state.indicators.find(i=>String(i.id)===String(currentRecordsId))?.target||0}){
+ const empty=recordsRows.querySelector('.empty');if(empty)empty.remove();const x=document.createElement('div');x.className='record-row';
+ x.innerHTML=`<input class="r-date" type="date" value="${r.date}"><input class="r-value" type="number" step=".01" value="${r.value}"><input class="r-target" type="number" step=".01" value="${r.target}"><button class="btn btn-danger btn-small" onclick="this.parentElement.remove()">EXCLUIR</button>`;
+ recordsRows.appendChild(x);
+}
+function addRecord(){addRecordRow()}
+function saveRecords(){
+ const i=state.indicators.find(x=>String(x.id)===String(currentRecordsId));
+ i.records=[...recordsRows.querySelectorAll('.record-row')].map(x=>({date:x.querySelector('.r-date').value,value:+x.querySelector('.r-value').value||0,target:+x.querySelector('.r-target').value||0})).filter(x=>x.date).sort((a,b)=>a.date.localeCompare(b.date));
+ if(i.records.length)i.target=i.records.at(-1).target;save();closeModal('recordsModal');render();renderHistory();
+}
+function setHistoryMode(v){historyDetailed=v;historyAll.classList.toggle('active',v);historyLast.classList.toggle('active',!v);renderHistory()}
+function renderHistory(){
+ let h='';state.indicators.forEach(i=>{
+  const rs=historyDetailed?i.records.slice().sort((a,b)=>a.date.localeCompare(b.date)):i.records.slice().sort((a,b)=>a.date.localeCompare(b.date)).slice(-1);if(!rs.length)return;
+  h+=`<div class="panel"><div class="panel-head"><div class="panel-title">${esc(i.name)}</div><div class="actions"><button class="btn btn-small" onclick="openRecords('${i.id}')">EDITAR</button><button class="btn btn-small" onclick="openIndicatorModal('${i.id}')">CONFIGURAR</button></div></div><div class="table-wrap"><table><thead><tr><th>Data</th><th>Resultado</th><th>Meta</th><th>Diferença</th><th>Status</th></tr></thead><tbody>${rs.map(r=>{const dif=+r.value-+r.target;return `<tr><td>${short(r.date)}</td><td><strong>${fmtUnit(r.value,i.unit)}</strong></td><td>${fmtUnit(r.target,i.unit)}</td><td>${fmtUnit(dif,i.unit)}</td><td><span class="status ${dif>=0?'ok':'bad'}">${dif>=0?'Acima/atingiu':'Abaixo da meta'}</span></td></tr>`}).join('')}</tbody></table></div></div>`;
+ });
+ historyTable.innerHTML=h||'<div class="empty">Nenhum lançamento cadastrado.</div>';
+}
+function admin(){
+ indicatorAdminList.innerHTML='';
+ state.indicators.forEach((i,n)=>{
+  const c=document.createElement('div');c.className='indicator-admin-card';c.style.padding='15px';
+  const deleteBtn=n<2?'':`<button class="btn btn-danger btn-small" onclick="deleteIndicator('${i.id}')">EXCLUIR</button>`;
+  c.innerHTML=`<div class="panel-head"><div><div class="panel-title">${esc(i.name)}</div><div class="small-note">${esc(i.desc||'')}</div></div><div class="actions"><button class="btn btn-small" onclick="openIndicatorModal('${i.id}')">EDITAR</button>${deleteBtn}</div></div><div class="small-note">Meta padrão: <b style="color:#fff">${fmtUnit(i.target,i.unit)}</b> · Lançamentos: <b style="color:#fff">${i.records.length}</b>${n<2?' · Indicador-base':''}</div>`;
+  indicatorAdminList.appendChild(c);
+ });
+}
+function openIndicatorModal(id=null){
+ editIndicatorId=id;const i=id?state.indicators.find(x=>String(x.id)===String(id)):null;
+ indicatorModalTitle.textContent=id?'Editar indicador':'Novo indicador';iName.value=i?.name||'';iUnit.value=i?.unit||'%';iTarget.value=i?.target??95;iPeriod.value=i?.period||'Mensal';iDesc.value=i?.desc||'';openModal('indicatorModal');
+}
+function saveIndicator(){
+ const name=iName.value.trim();if(!name)return alert('Informe o nome.');
+ const d={name,unit:iUnit.value,target:+iTarget.value||0,period:iPeriod.value,desc:iDesc.value.trim()};
+ if(editIndicatorId)Object.assign(state.indicators.find(x=>String(x.id)===String(editIndicatorId)),d);else state.indicators.push({id:'i'+Date.now(),...d,records:[]});
+ save();closeModal('indicatorModal');render();renderFeed();
+}
+function deleteIndicator(id){
+ if(['acc','delivery'].includes(String(id)))return alert('Os dois indicadores-base permanecem para preservar a estrutura original.');
+ const i=state.indicators.find(x=>String(x.id)===String(id));if(i&&confirm("Excluir '"+i.name+"' e todo o seu histórico?")){state.indicators=state.indicators.filter(x=>String(x.id)!==String(id));save();render();renderFeed()}
+}
+function registeredPeople(){
+ const all=(state.collaborators||[]).map(p=>{
+  const t=state.teams.find(x=>String(x.id)===String(p.teamId||''));
+  return {id:String(p.id),name:p.name||'Colaborador',role:p.role||'',photo:p.photo||'',teamId:p.teamId?String(p.teamId):'',teamName:t?.name||(!p.teamId?'Sem equipe':'')};
+ });
+ const seen=new Set();return all.filter(p=>{if(seen.has(p.id))return false;seen.add(p.id);return true});
+}
+function populateLeaderSelect(selectId,currentId,currentName){
+ const sel=document.getElementById(selectId);if(!sel)return;
+ const people=registeredPeople();let html='<option value="">Selecione um colaborador cadastrado...</option>';
+ if(currentName && currentId && !people.some(p=>p.id===String(currentId)))html+=`<option value="legacy:${esc(currentName)}" selected>${esc(currentName)} — responsável atual</option>`;
+ html+=people.map(p=>`<option value="${esc(p.id)}" ${String(p.id)===String(currentId)?'selected':''}>${esc(p.name)} — ${esc(p.role||'Colaborador')}${p.teamName?' · '+esc(p.teamName):''}</option>`).join('');sel.innerHTML=html;
+}
+function openCollaboratorModal(id=''){
+ const p=(state.collaborators||[]).find(x=>String(x.id)===String(id));
+ document.getElementById('collaboratorModalTitle').textContent=p?'Editar colaborador':'Cadastrar colaborador';
+ document.getElementById('cName').value=p?.name||'';
+ document.getElementById('cRole').value=p?.role||'';
+ document.getElementById('cPhoto').value='';
+ document.getElementById('cPhoto').dataset.existing=p?.photo||'';
+ document.getElementById('collaboratorModal').dataset.editId=p?.id||'';
+ document.getElementById('collaboratorSaveStatus').textContent='';
+ openModal('collaboratorModal');
+}
+function saveCollaborator(){
+ const name=document.getElementById('cName').value.trim();
+ if(!name)return alert('Informe o nome do colaborador.');
+ const role=document.getElementById('cRole').value.trim();
+ const editId=document.getElementById('collaboratorModal').dataset.editId||'';
+ const file=document.getElementById('cPhoto').files?.[0];
+ const btn=document.getElementById('saveCollaboratorBtn');
+ const status=document.getElementById('collaboratorSaveStatus');
+ if(btn){btn.disabled=true;btn.textContent='SALVANDO...';}
+ const finish=photo=>{
+  state.collaborators=state.collaborators||[];
+  let p=editId?state.collaborators.find(x=>String(x.id)===String(editId)):null;
+  if(!p){p={id:'p'+Date.now()+'_'+Math.random().toString(36).slice(2,7),name,role,photo:photo||'',teamId:''};state.collaborators.push(p)}
+  else {p.name=name;p.role=role;if(photo)p.photo=photo;}
+  if(save()){
+   closeModal('collaboratorModal');renderCollaborators();renderTeams();renderFreeOrg();
+  }else{alert('Não foi possível salvar o colaborador. Verifique o armazenamento do navegador.');}
+  if(btn){btn.disabled=false;btn.textContent='SALVAR COLABORADOR';}
+  if(status)status.textContent='';
+ };
+ if(file){readImageCompressed(file,700,.72).then(finish).catch(e=>{if(btn){btn.disabled=false;btn.textContent='SALVAR COLABORADOR';}alert(e.message||'Não foi possível processar a foto.')})}else finish(document.getElementById('cPhoto').dataset.existing||'');
+}
+function deleteCollaborator(id){
+ const p=state.collaborators.find(x=>String(x.id)===String(id));if(!p)return;
+ if(state.teams.some(t=>(t.people||[]).some(x=>String(x.id)===String(id))))return alert('Remova o colaborador das equipes antes de excluir o cadastro.');
+ if(confirm(`Excluir o cadastro de "${p.name}"?`)){state.collaborators=state.collaborators.filter(x=>String(x.id)!==String(id));state.freeOrg.selected=(state.freeOrg.selected||[]).filter(x=>String(x)!==String(id));state.freeOrg.order=(state.freeOrg.order||[]).filter(x=>String(x)!==String(id));delete state.freeOrg.parents[String(id)];save();renderCollaborators();renderFreeOrg();}
+}
+function renderCollaborators(){
+ const el=document.getElementById('collaboratorGallery');if(!el)return;
+ const people=state.collaborators||[];
+ if(!people.length){el.innerHTML='<div class="small-note">Nenhum colaborador cadastrado. Use “+ CADASTRAR COLABORADOR”.</div>';return;}
+ el.innerHTML=people.map(p=>`<div class="collaborator-photo-card" title="${esc(p.name)} — ${esc(p.role||'Colaborador')}">
+  <button class="collaborator-photo-btn" onclick="toggleFreeOrgPerson('${esc(p.id)}')">${p.photo?`<img src="${p.photo}" alt="">`:`<span>${esc((p.name||'?')[0])}</span>`}</button>
+  <div class="collaborator-photo-actions"><button class="btn btn-small" onclick="openCollaboratorModal('${esc(p.id)}')">EDITAR</button><button class="btn btn-danger btn-small" onclick="deleteCollaborator('${esc(p.id)}')">EXCLUIR</button></div>
+ </div>`).join('');
+}
+function openTeamModal(id=null){
+ editTeamId=id;const t=id?state.teams.find(x=>x.id===id):null;teamModalTitle.textContent=id?'Editar equipe':'Nova equipe';
+ populateLeaderSelect('tLeaderPerson',t?.leaderPersonId||'',t?.leader||'');tLeader.value=t?.leader||'';tDesc.value=t?.desc||'';tTasks.value=(t?.tasks||[]).join('\n');tLeaderPhoto.value='';tLeaderPhoto.dataset.existing=t?.leaderPhoto||'';
+ document.getElementById('tLeaderPerson').onchange=()=>{const p=registeredPeople().find(x=>x.id===document.getElementById('tLeaderPerson').value);if(p){tLeader.value=p.name;tLeaderPhoto.dataset.existing=p.photo||'';}};openModal('teamModal');
+}
+function saveTeam(){
+ const name=tName.value.trim();if(!name)return alert('Informe o nome da equipe.');
+ const selected=document.getElementById('tLeaderPerson')?.value||'';let leaderName=tLeader.value.trim(),leaderPhoto=tLeaderPhoto.dataset.existing||'',leaderPersonId='';
+ if(selected.startsWith('legacy:'))leaderName=selected.slice(7);else if(selected){const p=registeredPeople().find(x=>x.id===selected);if(!p)return alert('Selecione um colaborador cadastrado para ser o responsável.');leaderPersonId=p.id;leaderName=p.name;leaderPhoto=p.photo||leaderPhoto;}else if(!editTeamId)return alert('Selecione um colaborador cadastrado para ser o responsável.');
+ const d={name,leader:leaderName,leaderPersonId,desc:tDesc.value.trim(),tasks:tTasks.value.split('\n').map(x=>x.trim()).filter(Boolean)};const f=tLeaderPhoto.files[0],done=p=>{d.leaderPhoto=p||leaderPhoto;if(editTeamId)Object.assign(state.teams.find(x=>x.id===editTeamId),d);else state.teams.push({id:'t'+Date.now(),...d,people:[],metrics:[]});save();closeModal('teamModal');renderTeams();renderCollaborators()};
+ if(f){const r=new FileReader;r.onload=()=>done(r.result);r.readAsDataURL(f)}else done('');
+}
+function deleteTeam(id){const t=state.teams.find(x=>x.id===id);if(t&&confirm("Excluir a equipe '"+t.name+"'?")){state.teams=state.teams.filter(x=>x.id!==id);save();renderTeams()}}
+function collectPeople(){
+ const all=[];
+ state.teams.forEach(t=>(t.people||[]).forEach(p=>all.push({...p,sourceType:'team',sourceTeamId:t.id,sourceTeamName:t.name})));
+ (state.orphanPeople||[]).forEach(p=>all.push({...p,sourceType:'orphan',sourceTeamId:null,sourceTeamName:'Pessoa avulsa'}));
+ return all;
+}
+function openPersonModal(id){
+ currentTeamId=id;
+ const t=state.teams.find(x=>String(x.id)===String(id));
+ pMode.value='new';pName.value='';pRole.value='';pPhoto.value='';
+ const btn=document.getElementById('savePersonBtn');
+ const status=document.getElementById('personSaveStatus');
+ if(btn){btn.disabled=false;btn.textContent='SALVAR COLABORADOR';}
+ if(status)status.textContent='';
+ personModalTitle.textContent='Adicionar colaborador';
+ populateExistingPeople();
+ togglePersonMode();
+ personDestinationNote.textContent=t?`Equipe de destino: ${t.name}`:'';
+ openModal('personModal');
+}
+function populateExistingPeople(){
+ const sel=document.getElementById('pExisting');if(!sel)return;
+ const people=registeredPeople().filter(p=>String(p.teamId||'')!==String(currentTeamId));
+ sel.innerHTML=people.length
+  ? '<option value="">Selecione um colaborador...</option>'+people.map(p=>`<option value="master::::${esc(p.id)}">${esc(p.name)} — ${esc(p.role||'Colaborador')}${p.teamName?' · '+esc(p.teamName):' · Sem equipe'}</option>`).join('')
+  : '<option value="">Nenhum colaborador disponível</option>';
+}
+function togglePersonMode(){
+ const mode=pMode.value;
+ existingPersonWrap.classList.toggle('hidden',mode!=='existing');
+ pName.closest('.field').classList.toggle('hidden',mode==='existing');
+ pRole.closest('.field').classList.toggle('hidden',mode==='existing');
+ pPhoto.closest('.field').classList.toggle('hidden',mode==='existing');
+ if(mode==='existing')populateExistingPeople();
+}
+function savePerson(){
+ const mode=document.getElementById('pMode').value;
+ const t=state.teams.find(x=>String(x.id)===String(currentTeamId));
+ const btn=document.getElementById('savePersonBtn');
+ const status=document.getElementById('personSaveStatus');
+ if(!t){alert('Selecione uma equipe válida.');return;}
+ t.people=t.people||[];
+
+ const setSaving=(saving,msg='')=>{
+   if(btn){btn.disabled=saving;btn.textContent=saving?'SALVANDO...':'SALVAR COLABORADOR';}
+   if(status)status.textContent=msg;
+ };
+ const snapshot=JSON.stringify({teams:state.teams,orphanPeople:state.orphanPeople||[]});
+ const rollback=()=>{
+   try{
+     const old=JSON.parse(snapshot);
+     state.teams=old.teams;
+     state.orphanPeople=old.orphanPeople||[];
+   }catch(e){}
+ };
+ const persistAndVerify=()=>{
+   try{
+     const ok=save();
+     if(!ok)throw new Error('Falha ao gravar no armazenamento do navegador.');
+     const saved=JSON.parse(localStorage.getItem(KEY)||'null');
+     if(!saved)throw new Error('O navegador não retornou os dados gravados.');
+     return true;
+   }catch(err){
+     console.error('Erro ao salvar colaborador:',err);
+     return false;
+   }
+ };
+
+ if(mode==='existing'){
+   const raw=document.getElementById('pExisting').value;
+   if(!raw){alert('Selecione o colaborador existente.');return;}
+   const [sourceType,sourceTeamId,personId]=raw.split('::');
+   let person=null;
+   const master=state.collaborators.find(x=>String(x.id)===String(personId));
+   if(!master){alert('Colaborador não encontrado no cadastro mestre.');return;}
+   if(t.people.some(p=>String(p.id)===String(personId))){alert('Este colaborador já está nesta equipe.');return;}
+   if(sourceType==='team'){
+     const source=state.teams.find(x=>String(x.id)===String(sourceTeamId));
+     if(source)source.people=source.people.filter(p=>String(p.id)!==String(personId));
+     person={...master};
+   }else if(sourceType==='master'){
+     if(master.teamId){const source=state.teams.find(x=>String(x.id)===String(master.teamId));if(source)source.people=source.people.filter(p=>String(p.id)!==String(personId));}
+     person={...master};
+   }else{
+     person=(state.orphanPeople||[]).find(p=>String(p.id)===String(personId));
+     if(!person){person={...master};}else{state.orphanPeople=state.orphanPeople.filter(p=>String(p.id)!==String(personId));}
+   }
+   person.teamId=String(t.id);person.parentId='';delete person.teamName;
+   t.people.push(person);
+   master.teamId=String(t.id);
+   setSaving(true,'Salvando colaborador...');
+   if(!persistAndVerify()){
+     rollback();
+     setSaving(false,'');
+     alert('Não foi possível salvar o colaborador. Nenhuma alteração foi perdida.');
+     return;
+   }
+   setSaving(false,'');
+   closeModal('personModal');
+   renderTeams();
+   selectTeam(currentTeamId);
+   return;
+ }
+
+ const n=document.getElementById('pName').value.trim();
+ const role=document.getElementById('pRole').value.trim();
+ if(!n){alert('Informe o nome.');document.getElementById('pName').focus();return;}
+ const f=document.getElementById('pPhoto').files&&document.getElementById('pPhoto').files[0];
+
+ const finish=photo=>{
+   const person={id:'p'+Date.now()+'_'+Math.random().toString(36).slice(2,7),name:n,role,photo:photo||'',parentId:''};
+   t.people.push(person); state.collaborators.push({...person,teamId:String(t.id)});
+   setSaving(true,'Salvando colaborador...');
+
+   if(persistAndVerify()){
+     setSaving(false,'');
+     closeModal('personModal');
+     renderTeams();
+     selectTeam(currentTeamId);
+     return;
+   }
+
+   // Se a foto ainda exceder o limite do localStorage, tenta salvar o colaborador sem a foto.
+   if(person.photo){
+     t.people[t.people.length-1].photo=''; const masterFallback=state.collaborators.find(x=>String(x.id)===String(person.id));if(masterFallback)masterFallback.photo='';
+     if(persistAndVerify()){
+       setSaving(false,'');
+       closeModal('personModal');
+       renderTeams();
+       selectTeam(currentTeamId);
+       alert('Colaborador salvo. A foto foi armazenada separadamente para não ocupar o limite do armazenamento principal.');
+       return;
+     }
+   }
+
+   rollback();
+   setSaving(false,'');
+   alert('Não foi possível salvar o colaborador. Verifique o armazenamento do navegador ou exporte um backup antes de continuar.');
+ };
+
+ if(f){
+   setSaving(true,'Processando foto...');
+   readImageCompressed(f,700,.72)
+     .then(finish)
+     .catch(err=>{
+       setSaving(false,'');
+       alert(err.message||'Não foi possível processar a foto.');
+     });
+ }else finish('');
+}
+function removePerson(tid,pid){
+ const t=state.teams.find(x=>String(x.id)===String(tid));
+ if(!t)return;
+ const person=t.people.find(p=>String(p.id)===String(pid));
+ if(!person)return;
+ if(confirm(`Remover "${person.name}" da equipe?\\n\\nA pessoa ficará disponível para ser adicionada novamente a outra equipe.`)){
+   t.people=t.people.filter(p=>String(p.id)!==String(pid));
+   const master=state.collaborators.find(x=>String(x.id)===String(pid));if(master)master.teamId='';
+   save();renderTeams();renderCollaborators();renderFreeOrg();selectTeam(tid);
+ }
+}
+function movePersonModal(tid,pid){
+ const t=state.teams.find(x=>String(x.id)===String(tid));
+ const p=t?.people.find(x=>String(x.id)===String(pid));
+ if(!p)return;
+ currentTeamId=tid;
+ pMode.value='existing';
+ populateExistingPeople();
+ const all=collectPeople();
+ const same=all.find(x=>String(x.id)===String(pid)&&String(x.sourceTeamId)===String(tid));
+ const otherTeams=state.teams.filter(x=>String(x.id)!==String(tid));
+ const target=prompt('Digite o número da equipe de destino:\\n\\n'+otherTeams.map((x,i)=>`${i+1} - ${x.name}`).join('\\n'));
+ if(target===null)return;
+ const idx=Number(target)-1;
+ if(!Number.isInteger(idx)||!otherTeams[idx])return alert('Equipe inválida.');
+ const dest=otherTeams[idx];
+ t.people=t.people.filter(x=>String(x.id)!==String(pid));
+ dest.people=dest.people||[];
+ p.teamId=String(dest.id);p.parentId='';dest.people.push(p);
+ const master=state.collaborators.find(x=>String(x.id)===String(pid));if(master)master.teamId=String(dest.id);
+ save();renderTeams();renderCollaborators();renderFreeOrg();selectTeam(dest.id);
+}
+function reorderPerson(tid,pid,dir){
+ const t=state.teams.find(x=>String(x.id)===String(tid));if(!t)return;
+ const idx=t.people.findIndex(p=>String(p.id)===String(pid));if(idx<0)return;
+ const ni=idx+dir;if(ni<0||ni>=t.people.length)return;
+ [t.people[idx],t.people[ni]]=[t.people[ni],t.people[idx]];
+ save();renderTeams();selectTeam(tid);
+}
+function dragStartPerson(e,tid,pid){e.dataTransfer.setData('text/plain',JSON.stringify({tid,pid}));e.currentTarget.classList.add('dragging')}
+function dragEndPerson(e){e.currentTarget.classList.remove('dragging')}
+function dragOverPerson(e){e.preventDefault();e.currentTarget.classList.add('drag-over')}
+function dragLeavePerson(e){e.currentTarget.classList.remove('drag-over')}
+function dropPerson(e,tid,targetPid){
+ e.preventDefault();e.currentTarget.classList.remove('drag-over');
+ try{
+   const data=JSON.parse(e.dataTransfer.getData('text/plain'));
+   if(String(data.tid)!==String(tid)||String(data.pid)===String(targetPid))return;
+   const t=state.teams.find(x=>String(x.id)===String(tid));if(!t)return;
+   const from=t.people.findIndex(p=>String(p.id)===String(data.pid));
+   const to=t.people.findIndex(p=>String(p.id)===String(targetPid));
+   if(from<0||to<0)return;
+   const [moved]=t.people.splice(from,1);t.people.splice(to,0,moved);
+   save();renderTeams();selectTeam(tid);
+ }catch(err){}
+}
+function openOrphanModal(){
+ const nameEl=document.getElementById('oName'),roleEl=document.getElementById('oRole'),photoEl=document.getElementById('oPhoto');
+ nameEl.value='';roleEl.value='';photoEl.value='';
+ const status=document.getElementById('orphanSaveStatus');if(status)status.textContent='';
+ const btn=document.getElementById('saveOrphanBtn');if(btn){btn.disabled=false;btn.textContent='SALVAR PESSOA AVULSA'}
+ openModal('orphanModal');
+}
+function readImageCompressed(file,maxSize=900,quality=.82){
+ return new Promise((resolve,reject)=>{
+  if(!file){resolve('');return;}
+  if(!file.type.startsWith('image/')){reject(new Error('Selecione uma imagem válida.'));return;}
+  const reader=new FileReader();
+  reader.onerror=()=>reject(new Error('Não foi possível ler a foto.'));
+  reader.onload=()=>{
+   const img=new Image();
+   img.onerror=()=>reject(new Error('Não foi possível processar a foto.'));
+   img.onload=()=>{
+    const scale=Math.min(1,maxSize/Math.max(img.naturalWidth,img.naturalHeight));
+    const w=Math.max(1,Math.round(img.naturalWidth*scale)),h=Math.max(1,Math.round(img.naturalHeight*scale));
+    const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+    const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,w,h);
+    resolve(canvas.toDataURL('image/jpeg',quality));
+   };
+   img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+ });
+}
+function saveOrphan(){
+ const nameEl=document.getElementById('oName'),roleEl=document.getElementById('oRole'),photoEl=document.getElementById('oPhoto');
+ const status=document.getElementById('orphanSaveStatus'),btn=document.getElementById('saveOrphanBtn');
+ const n=nameEl.value.trim(),role=roleEl.value.trim();
+ if(!n){alert('Informe o nome.');nameEl.focus();return;}
+ if(btn){btn.disabled=true;btn.textContent='SALVANDO...';}
+ if(status)status.textContent='Gravando pessoa avulsa...';
+ const finish=photo=>{
+  const person={id:'o'+Date.now()+'_'+Math.random().toString(36).slice(2,7),name:n,role,photo:photo||''};
+  state.orphanPeople=state.orphanPeople||[];
+  state.orphanPeople.push(person);
+  try{
+   save();
+   const saved=JSON.parse(localStorage.getItem(KEY)||'null');
+   const persisted=(saved?.orphanPeople||[]).some(p=>String(p.id)===String(person.id));
+   if(!persisted)throw new Error('O navegador não confirmou a gravação.');
+  }catch(err){
+   state.orphanPeople=state.orphanPeople.filter(p=>String(p.id)!==String(person.id));
+   if(btn){btn.disabled=false;btn.textContent='SALVAR PESSOA AVULSA';}
+   if(status)status.textContent='';
+   alert('Não foi possível salvar a pessoa avulsa. Se a foto for muito grande, tente outra imagem.');
+   return;
+  }
+  const macro=document.getElementById('macroOrgModal');
+  closeModal('orphanModal');
+  renderTeams();
+  if(currentTeamId)selectTeam(currentTeamId);
+  if(macro?.classList.contains('open')){
+    macro.style.zIndex='100';
+    renderMacroPeople();
+    renderMacroPreview();
+  }
+ };
+ const f=photoEl.files&&photoEl.files[0];
+ if(f){readImageCompressed(f).then(finish).catch(err=>{if(btn){btn.disabled=false;btn.textContent='SALVAR PESSOA AVULSA';}if(status)status.textContent='';alert(err.message||'Erro ao processar a foto.')});}
+ else finish('');
+}
+function removeOrphan(id){
+ const p=state.orphanPeople.find(x=>String(x.id)===String(id));if(!p)return;
+ if(confirm(`Excluir "${p.name}" da lista de pessoas avulsas?`)){
+   state.orphanPeople=state.orphanPeople.filter(p=>String(p.id)!==String(id));save();renderTeams();if(currentTeamId)selectTeam(currentTeamId);
+ }
+}
+function openMetricModal(id){currentTeamId=id;mName.value='';mTarget.value='';mValue.value='';mUnit.value='';openModal('metricModal')}
+function saveMetric(){const n=mName.value.trim();if(!n)return alert('Informe o nome da métrica.');const t=state.teams.find(x=>x.id===currentTeamId);t.metrics.push({id:'m'+Date.now(),name:n,target:+mTarget.value||0,value:+mValue.value||0,unit:mUnit.value.trim()});save();closeModal('metricModal');renderTeams()}
+function updateMetric(tid,id){const m=state.teams.find(x=>x.id===tid).metrics.find(x=>x.id===id),v=prompt('Novo resultado:',m.value);if(v!==null){m.value=+v||0;save();renderTeams()}}
+function deleteMetric(tid,id){const t=state.teams.find(x=>x.id===tid);t.metrics=t.metrics.filter(m=>m.id!==id);save();renderTeams()}
+
+let currentOrgEditorTeamId=null;
+let currentOrgEditorPersonId=null;
+
+function openOrgEditor(teamId=null){
+ currentOrgEditorTeamId=teamId||currentTeamId;
+ const t=state.teams.find(x=>String(x.id)===String(currentOrgEditorTeamId));
+ if(!t)return alert('Selecione uma equipe para editar o organograma.');
+ t.people=t.people||[];
+ populateLeaderSelect('orgLeaderPerson',t.leaderPersonId||'',t.leader||'');
+ orgLeaderName.value=t.leader||'';
+ document.getElementById('orgLeaderPerson').onchange=()=>{const p=registeredPeople().find(x=>x.id===document.getElementById('orgLeaderPerson').value);if(p){orgLeaderName.value=p.name;orgLeaderPhoto.dataset.existing=p.photo||'';}};
+ orgLeaderPhoto.value='';
+ orgLeaderPhoto.dataset.existing=t.leaderPhoto||'';
+ renderOrgEditorPeople();
+ openModal('orgEditorModal');
+}
+
+function renderOrgEditorPeople(){
+ const t=state.teams.find(x=>String(x.id)===String(currentOrgEditorTeamId));
+ const el=document.getElementById('orgEditorPeople');
+ if(!t||!el)return;
+ t.people=t.people||[];
+ if(!t.people.length){
+   el.innerHTML='<div class="empty">Nenhum colaborador cadastrado nesta equipe.</div>';
+   return;
+ }
+ el.innerHTML=t.people.map((p,idx)=>`
+  <div class="org-editor-person">
+   <div class="drag-handle">☷</div>
+   <div class="avatar">${p.photo?`<img src="${p.photo}">`:esc((p.name||'?')[0])}</div>
+   <div>
+    <b>${esc(p.name)}</b>
+    <small style="display:block;color:var(--muted);margin-top:2px">${esc(p.role||'Colaborador')}</small>
+    <label style="display:block;font-size:9px;color:var(--muted);margin-top:5px">RESPONDE A</label>
+    <select onchange="setOrgParent('${p.id}',this.value)" style="margin-top:3px;background:#0c110f;color:#fff;border:1px solid #3a4540;border-radius:6px;padding:5px;font-size:10px">
+      <option value="">Responsável da equipe</option>
+      ${t.people.filter(q=>String(q.id)!==String(p.id)).map(q=>`<option value="${esc(q.id)}" ${String(p.parentId||'')===String(q.id)?'selected':''}>${esc(q.name)}</option>`).join('')}
+    </select>
+   </div>
+   <div class="org-editor-actions">
+    <button class="btn btn-small" title="Subir" onclick="reorderOrgEditorPerson(${idx},-1)">↑</button>
+    <button class="btn btn-small" title="Descer" onclick="reorderOrgEditorPerson(${idx},1)">↓</button>
+    <button class="btn btn-small" onclick="openOrgPersonEdit('${p.id}')">EDITAR</button>
+    <button class="btn btn-danger btn-small" onclick="removeOrgEditorPerson('${p.id}')">EXCLUIR</button>
+   </div>
+  </div>`).join('');
+}
+
+function setOrgParent(pid,parentId){const t=state.teams.find(x=>String(x.id)===String(currentOrgEditorTeamId));if(!t)return;const p=t.people.find(x=>String(x.id)===String(pid));if(!p)return;let candidate=String(parentId||'');let cur=candidate;const seen=new Set([String(pid)]);while(cur){if(seen.has(cur)){candidate='';break;}seen.add(cur);const q=t.people.find(x=>String(x.id)===cur);cur=String(q?.parentId||'');}p.parentId=candidate;save();renderOrgEditorPeople();renderTeams();selectTeam(t.id);}
+
+function reorderOrgEditorPerson(index,dir){
+ const t=state.teams.find(x=>String(x.id)===String(currentOrgEditorTeamId));
+ if(!t)return;
+ const ni=index+dir;
+ if(ni<0||ni>=t.people.length)return;
+ [t.people[index],t.people[ni]]=[t.people[ni],t.people[index]];
+ save();
+ renderOrgEditorPeople();
+ renderTeams();
+ selectTeam(t.id);
+}
+
+function removeOrgEditorPerson(pid){
+ const t=state.teams.find(x=>String(x.id)===String(currentOrgEditorTeamId));
+ if(!t)return;
+ const p=t.people.find(x=>String(x.id)===String(pid));
+ if(!p)return;
+ if(confirm(`Remover "${p.name}" do organograma desta equipe?`)){
+   t.people=t.people.filter(x=>String(x.id)!==String(pid));
+   save();
+   renderOrgEditorPeople();
+   renderTeams();
+   selectTeam(t.id);
+ }
+}
+
+function openOrgPersonEdit(pid){
+ const t=state.teams.find(x=>String(x.id)===String(currentOrgEditorTeamId));
+ const p=t?.people.find(x=>String(x.id)===String(pid));
+ if(!p)return;
+ currentOrgEditorPersonId=pid;
+ orgPersonName.value=p.name||'';
+ orgPersonRole.value=p.role||'';
+ orgPersonPhoto.value='';
+ orgPersonPhoto.dataset.existing=p.photo||'';
+ openModal('orgPersonEditModal');
+}
+
+function saveOrgPersonEdit(){
+ const t=state.teams.find(x=>String(x.id)===String(currentOrgEditorTeamId));
+ const p=t?.people.find(x=>String(x.id)===String(currentOrgEditorPersonId));
+ if(!p)return;
+ const name=orgPersonName.value.trim();
+ if(!name)return alert('Informe o nome do colaborador.');
+ p.name=name;
+ p.role=orgPersonRole.value.trim();
+ const f=orgPersonPhoto.files[0];
+ const done=photo=>{
+   if(photo)p.photo=photo;
+   else p.photo=orgPersonPhoto.dataset.existing||p.photo||'';
+   save();
+   closeModal('orgPersonEditModal');
+   renderOrgEditorPeople();
+   renderTeams();
+   selectTeam(t.id);
+ };
+ if(f){
+   const r=new FileReader();
+   r.onload=()=>done(r.result);
+   r.readAsDataURL(f);
+ }else done('');
+}
+
+function saveOrgEditor(){
+ const t=state.teams.find(x=>String(x.id)===String(currentOrgEditorTeamId));
+ if(!t)return;
+ const selected=document.getElementById('orgLeaderPerson')?.value||'';let leader=orgLeaderName.value.trim();if(selected.startsWith('legacy:'))leader=selected.slice(7);else if(selected){const lp=registeredPeople().find(x=>x.id===selected);if(!lp)return alert('Selecione um colaborador cadastrado.');leader=lp.name;t.leaderPersonId=lp.id;if(!orgLeaderPhoto.files[0])orgLeaderPhoto.dataset.existing=lp.photo||'';}if(!leader)return alert('Informe o responsável.');t.leader=leader;
+ const f=orgLeaderPhoto.files[0];
+ const done=photo=>{
+   if(photo)t.leaderPhoto=photo;
+   else t.leaderPhoto=orgLeaderPhoto.dataset.existing||t.leaderPhoto||'';
+   save();
+   closeModal('orgEditorModal');
+   renderTeams();
+   selectTeam(t.id);
+ };
+ if(f){
+   const r=new FileReader();
+   r.onload=()=>done(r.result);
+   r.readAsDataURL(f);
+ }else done('');
+}
+
+function updateOrgEditButton(){
+ const btn=document.getElementById('editOrgTopBtn');
+ if(!btn)return;
+ btn.disabled=!currentTeamId;
+ btn.title=currentTeamId?'Editar a equipe selecionada':'Selecione uma equipe primeiro';
+}
+function openSelectedOrgEditor(){
+ if(!currentTeamId)return alert('Selecione uma equipe primeiro clicando em ORGANOGRAMA.');
+ openOrgEditor(currentTeamId);
+}
+function selectTeam(id){
+ currentTeamId=id;const t=state.teams.find(x=>String(x.id)===String(id));if(!t){updateOrgEditButton();orgArea.innerHTML='';return;}
+ const avatar=p=>p.photo?`<img class="org-photo" src="${p.photo}">`:`<div style="width:54px;height:54px;border-radius:50%;margin:0 auto 8px;background:#252d29;display:grid;place-items:center;font-weight:800">${esc((p.name||'?')[0])}</div>`;
+ const people=t.people||[],byParent=pid=>people.filter(p=>String(p.parentId||'')===String(pid||''));
+ const build=pid=>byParent(pid).map(p=>`<div class="org-node">${avatar(p)}<b>${esc(p.name)}</b><small>${esc(p.role||'Colaborador')}</small><button class="btn btn-danger btn-small" style="margin-top:7px" onclick="removePerson('${t.id}','${p.id}')">EXCLUIR</button>${build(p.id)?`<div class="connector"></div><div class="org-children">${build(p.id)}</div>`:''}</div>`).join('');
+ updateOrgEditButton();let html=`<div class="org-node main">${t.leaderPhoto?`<img class="org-photo" src="${t.leaderPhoto}">`:''}<b>${esc(t.leader||'Responsável não definido')}</b><small>Responsável — ${esc(t.name)}</small></div>`;const roots=build('');if(roots)html+=`<div class="connector"></div><div class="org-children">${roots}</div>`;orgArea.innerHTML=html;
+}
+function freeOrgData(){
+ state.freeOrg=state.freeOrg||{selected:[],parents:{},order:[]};
+ state.freeOrg.selected=(state.freeOrg.selected||[]).map(String).filter(id=>(state.collaborators||[]).some(p=>String(p.id)===id));
+ state.freeOrg.order=(state.freeOrg.order||[]).map(String).filter(id=>state.freeOrg.selected.includes(id));
+ state.freeOrg.selected.forEach(id=>{if(!state.freeOrg.order.includes(id))state.freeOrg.order.push(id)});
+ return state.freeOrg;
+}
+function toggleFreeOrgPerson(id){
+ const m=freeOrgData(),sid=String(id),i=m.selected.indexOf(sid);
+ if(i>=0){m.selected.splice(i,1);m.order=m.order.filter(x=>x!==sid);delete m.parents[sid];Object.keys(m.parents).forEach(k=>{if(String(m.parents[k])===sid)m.parents[k]=''});}
+ else {m.selected.push(sid);m.order.push(sid);m.parents[sid]='';}
+ save();renderCollaborators();renderFreeOrg();
+}
+function clearFreeOrgSelection(){const m=freeOrgData();m.selected=[];m.order=[];m.parents={};save();renderCollaborators();renderFreeOrg();}
+function freeOrgAvatar(p){return p?.photo?`<img class="free-org-photo" src="${p.photo}" alt="">`:`<div class="free-org-photo initials">${esc((p?.name||'?')[0])}</div>`}
+function freeOrgChildren(parentId){const m=freeOrgData();return m.order.filter(id=>m.selected.includes(id)&&String(m.parents[id]||'')===String(parentId||''));}
+function renderFreeOrg(){
+ const el=document.getElementById('freeOrgArea');if(!el)return;const m=freeOrgData();
+ const peopleById=new Map((state.collaborators||[]).map(p=>[String(p.id),p]));
+ const renderNode=(id,depth=0)=>{const p=peopleById.get(String(id));if(!p)return '';const kids=freeOrgChildren(id);const idx=m.order.indexOf(String(id));const sibs=freeOrgChildren(m.parents[String(id)]||'');
+  return `<div class="free-org-node-wrap"><div class="free-org-node" draggable="true" ondragstart="freeOrgDragStart(event,'${esc(id)}')" ondragover="freeOrgDragOver(event)" ondrop="freeOrgDrop(event,'${esc(id)}')">
+   <div class="free-org-drag">☷</div>${freeOrgAvatar(p)}<div class="free-org-info"><b>${esc(p.name)}</b><small>${esc(p.role||'Colaborador')}</small></div>
+   <div class="free-org-actions"><button class="btn btn-small" title="Subir" onclick="freeOrgMove('${esc(id)}',-1)">↑</button><button class="btn btn-small" title="Descer" onclick="freeOrgMove('${esc(id)}',1)">↓</button><button class="btn btn-danger btn-small" onclick="toggleFreeOrgPerson('${esc(id)}')">×</button></div>
+  </div>${kids.length?`<div class="free-org-children">${kids.map(k=>renderNode(k,depth+1)).join('')}</div>`:''}</div>`;
+ };
+ const roots=freeOrgChildren('');
+ el.innerHTML=`<div class="free-org-root" ondragover="freeOrgDragOver(event)" ondrop="freeOrgDrop(event,'')"><div class="free-org-root-title">ORGANOGRAMA</div><div class="small-note">Arraste aqui para colocar no nível raiz.</div>${roots.length?`<div class="free-org-root-list">${roots.map(id=>renderNode(id)).join('')}</div>`:'<div class="free-org-empty">O quadro está vazio. Clique em uma foto acima para adicionar.</div>'}</div>`;
+}
+function freeOrgDragStart(e,id){e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',String(id));e.currentTarget.classList.add('dragging');}
+function freeOrgDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';}
+function freeOrgDrop(e,targetId){e.preventDefault();const id=String(e.dataTransfer.getData('text/plain')||'');if(!id||id===String(targetId))return;const m=freeOrgData();if(!m.selected.includes(id))return;
+ let cur=String(targetId||'');while(cur){if(cur===id)return;cur=String(m.parents[cur]||'');}
+ const oldParent=String(m.parents[id]||'');m.parents[id]=String(targetId||'');
+ const without=m.order.filter(x=>x!==id);const targetSibs=freeOrgChildren(targetId||'');let insertAfter=targetSibs[targetSibs.length-1];if(targetId){const pos=without.indexOf(insertAfter);if(pos>=0)without.splice(pos+1,0,id);else without.push(id);}else without.push(id);m.order=without;save();renderFreeOrg();renderCollaborators();}
+function freeOrgMove(id,dir){const m=freeOrgData(),sid=String(id),parent=String(m.parents[sid]||''),sibs=freeOrgChildren(parent),i=sibs.indexOf(sid),j=i+dir;if(i<0||j<0||j>=sibs.length)return;const a=sibs[i],b=sibs[j],ia=m.order.indexOf(a),ib=m.order.indexOf(b);if(ia<0||ib<0)return;[m.order[ia],m.order[ib]]=[m.order[ib],m.order[ia]];save();renderFreeOrg();}
+function saveFreeOrg(){if(save())alert('Organograma salvo com sucesso.');}
+
+function ensureMacroOrg(){
+ state.macroOrg=state.macroOrg||{title:'ORGANOGRAMA MACRO',root:'ALMOXARIFADO',teamOrder:[]};
+ state.macroOrg.teamOrder=state.macroOrg.teamOrder||[];state.macroOrg.parents=state.macroOrg.parents||{};
+ state.teams.forEach(t=>{if(!state.macroOrg.teamOrder.includes(String(t.id)))state.macroOrg.teamOrder.push(String(t.id))});
+ state.macroOrg.teamOrder=state.macroOrg.teamOrder.filter(id=>state.teams.some(t=>String(t.id)===String(id)));
+ return state.macroOrg;
+}
+function collectMacroPeople(){
+ const all=[];
+ state.teams.forEach(t=>(t.people||[]).forEach(p=>all.push({...p,sourceType:'team',sourceTeamId:String(t.id),sourceTeamName:t.name})));
+ (state.orphanPeople||[]).forEach(p=>all.push({...p,sourceType:'orphan',sourceTeamId:'',sourceTeamName:'Pessoa avulsa'}));
+ return all;
+}
+function macroDestinationOptions(person){
+ const current=person.sourceType==='team'?String(person.sourceTeamId):'orphan';
+ const opts=[`<option value="orphan" ${current==='orphan'?'selected':''}>Pessoa avulsa / fora de equipe</option>`];
+ ensureMacroOrg().teamOrder.forEach(id=>{
+  const t=state.teams.find(x=>String(x.id)===String(id));
+  if(!t)return;
+  opts.push(`<option value="team:${esc(String(id))}" ${current===String(id)?'selected':''}>${esc(t.name)}</option>`);
+ });
+ return opts.join('');
+}
+function renderMacroPeople(){
+ const el=document.getElementById('macroPeopleList'),count=document.getElementById('macroPeopleCount');
+ if(!el)return;
+ const people=collectMacroPeople();
+ if(count)count.textContent=`${people.length} pessoa(s) cadastrada(s)`;
+ if(!people.length){el.innerHTML='<div class="small-note">Nenhum colaborador cadastrado.</div>';return;}
+ el.innerHTML=people.map(p=>`<div class="macro-person-row" data-person-id="${esc(p.id)}" data-source-type="${esc(p.sourceType)}" data-source-team="${esc(p.sourceTeamId||'')}">
+   <div class="avatar">${p.photo?`<img src="${p.photo}">`:esc((p.name||'?')[0])}</div>
+   <div class="macro-person-info"><b>${esc(p.name)}</b><small>${esc(p.role||'Colaborador')} · ${esc(p.sourceTeamName)}</small></div>
+   <div class="macro-person-destination"><label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px">Destino</label><select class="macro-destination" onchange="renderMacroPreview()">${macroDestinationOptions(p)}</select></div>
+  </div>`).join('');
+}
+function collectMacroAssignments(){
+ return [...document.querySelectorAll('#macroPeopleList .macro-person-row')].map(row=>({
+  id:row.dataset.personId,
+  sourceType:row.dataset.sourceType,
+  sourceTeamId:row.dataset.sourceTeam||'',
+  destination:row.querySelector('.macro-destination')?.value||'orphan'
+ }));
+}
+function applyMacroAssignments(){
+ const assignments=collectMacroAssignments();
+ assignments.forEach(a=>{
+  let source=null,person=null;
+  if(a.sourceType==='team'){
+   source=state.teams.find(t=>String(t.id)===String(a.sourceTeamId));
+   person=source?.people.find(p=>String(p.id)===String(a.id));
+  }else{
+   source=state.orphanPeople;
+   person=source?.find(p=>String(p.id)===String(a.id));
+  }
+  if(!person)return;
+  if(a.destination==='orphan'){
+   if(a.sourceType==='team'){
+    source.people=source.people.filter(p=>String(p.id)!==String(a.id));
+    person.parentId='';
+    state.orphanPeople.push(person);
+   }
+   return;
+  }
+  const destId=a.destination.replace(/^team:/,'');
+  const dest=state.teams.find(t=>String(t.id)===String(destId));
+  if(!dest)return;
+  if(a.sourceType==='team' && String(source.id)===String(dest.id))return;
+  if(a.sourceType==='team')source.people=source.people.filter(p=>String(p.id)!==String(a.id));
+  else state.orphanPeople=state.orphanPeople.filter(p=>String(p.id)!==String(a.id));
+  person.parentId='';
+  dest.people=dest.people||[];
+  if(!dest.people.some(p=>String(p.id)===String(person.id)))dest.people.push(person);
+ });
+}
+function openOrphanModalFromMacro(){
+ const macro=document.getElementById('macroOrgModal'), orphan=document.getElementById('orphanModal');
+ openOrphanModal();
+ if(macro){macro.style.zIndex='50';}
+ if(orphan){orphan.style.zIndex='100';}
+}
+function toggleMacroInline(){
+ const el=document.getElementById('macroInline');if(!el)return;
+ const opening=el.style.display==='none'||!el.style.display;
+ if(opening){renderMacroInline();el.style.display='block';el.scrollIntoView({behavior:'smooth',block:'start'});}else el.style.display='none';
+}
+function renderMacroInline(){
+ const el=document.getElementById('macroInline');if(!el)return;
+ const m=ensureMacroOrg();
+ const teams=(m.teamOrder||[]).map(id=>state.teams.find(t=>String(t.id)===String(id))).filter(Boolean);
+ const parents=m.parents||{};
+ const childrenOf=pid=>teams.filter(t=>String(parents[String(t.id)]||'')===String(pid||''));
+ const build=pid=>childrenOf(pid).map(t=>`<div class="org-node macro-team-node">${t.leaderPhoto?`<img class="org-photo" src="${t.leaderPhoto}">`:''}<b>${esc(t.name)}</b><small>${esc(t.leader||'Responsável não definido')}</small><span class="small-note">${(t.people||[]).length} colaborador(es)</span>${build(t.id)?`<div class="connector"></div><div class="org-children">${build(t.id)}</div>`:''}</div>`).join('');
+ const people=collectMacroPeople();
+ const peopleHtml=people.length?people.map(p=>`<div class="macro-person-row" data-person-id="${esc(p.id)}" data-source-type="${esc(p.sourceType)}" data-source-team="${esc(p.sourceTeamId||'')}"><div class="avatar">${p.photo?`<img src="${p.photo}">`:esc((p.name||'?')[0])}</div><div class="macro-person-info"><b>${esc(p.name)}</b><small>${esc(p.role||'Colaborador')} · ${esc(p.sourceTeamName)}</small></div><div class="macro-person-destination"><label>Destino</label><select class="macro-destination">${macroDestinationOptions(p)}</select></div></div>`).join(''):'<div class="small-note">Nenhuma pessoa cadastrada.</div>';
+ el.innerHTML=`
+ <div class="panel" style="margin:0">
+  <div class="panel-head"><div><div class="panel-title">${esc(m.title||'ORGANOGRAMA MACRO')}</div><div class="small-note">Edite diretamente nesta tela: defina a raiz, a hierarquia das equipes e distribua todos os colaboradores.</div></div><div class="actions"><button class="btn btn-small" onclick="toggleMacroInline()">OCULTAR</button><button class="btn btn-primary btn-small" onclick="saveMacroOrgInline()">SALVAR ORGANOGRAMA MACRO</button></div></div>
+  <div class="form-grid" style="margin-top:14px">
+   <div class="field"><label>TÍTULO DO ORGANOGRAMA</label><input id="macroInlineTitle" value="${esc(m.title||'ORGANOGRAMA MACRO')}"></div>
+   <div class="field"><label>ESTRUTURA PRINCIPAL / RAIZ</label><input id="macroInlineRoot" value="${esc(m.root||'ALMOXARIFADO')}"></div>
+  </div>
+  <div class="org-editor-responsible">
+   <div class="org-editor-title"><strong>HIERARQUIA DAS EQUIPES</strong><span class="small-note">Escolha quem responde a quem e use ↑ ↓ para ordenar.</span></div>
+   <div id="macroInlineTeamOrder" class="org-editor-list">${teams.map((t,idx)=>{const id=String(t.id);return `<div class="org-editor-person"><div class="drag-handle">${idx+1}</div><div class="avatar">${t.leaderPhoto?`<img src="${t.leaderPhoto}">`:esc((t.name||'?')[0])}</div><div><b>${esc(t.name)}</b><small>${esc(t.leader||'Responsável não definido')} · ${(t.people||[]).length} colaborador(es)</small></div><div class="org-editor-actions"><select onchange="setMacroParent('${id}',this.value);renderMacroInline()"><option value="">Raiz / abaixo do organograma</option>${teams.filter(o=>String(o.id)!==id).map(o=>`<option value="${esc(String(o.id))}" ${String(parents[id]||'')===String(o.id)?'selected':''}>Responde a: ${esc(o.name)}</option>`).join('')}</select><button class="btn btn-small" ${idx===0?'disabled':''} onclick="moveMacroTeam(${idx},-1);renderMacroInline()">↑</button><button class="btn btn-small" ${idx===teams.length-1?'disabled':''} onclick="moveMacroTeam(${idx},1);renderMacroInline()">↓</button></div></div>`}).join('')}</div>
+  </div>
+  <div class="org-editor-responsible">
+   <div class="org-editor-title"><div><strong>DISTRIBUIÇÃO DOS COLABORADORES</strong><span class="small-note" style="margin-left:8px">${people.length} pessoa(s) cadastrada(s)</span></div><button class="btn btn-primary btn-small" type="button" onclick="openOrphanModalFromMacroInline()">+ PESSOA AVULSA</button></div>
+   <div class="small-note" style="margin-top:6px">Escolha a equipe/localização de cada colaborador. O responsável da equipe permanece no nível principal.</div>
+   <div id="macroPeopleListInline" class="macro-people-list" style="margin-top:10px">${peopleHtml}</div>
+  </div>
+  <div class="macro-inline-preview"><div class="panel-title" style="margin-bottom:10px">PRÉ-VISUALIZAÇÃO</div><div class="org macro-org-preview"><div class="org-node main"><b>${esc(m.root||'ALMOXARIFADO')}</b><small>Estrutura principal</small></div>${teams.length?`<div class="connector"></div><div class="org-children macro-team-row">${build('')}</div>`:''}</div></div>
+ </div>`;
+}
+function openOrphanModalFromMacroInline(){
+ openOrphanModal();
+ const orphan=document.getElementById('orphanModal');if(orphan)orphan.style.zIndex='120';
+}
+function saveMacroOrgInline(){
+ const m=ensureMacroOrg();
+ const title=document.getElementById('macroInlineTitle'),root=document.getElementById('macroInlineRoot');
+ m.title=(title?.value||m.title||'ORGANOGRAMA MACRO').trim()||'ORGANOGRAMA MACRO';
+ m.root=(root?.value||m.root||'ALMOXARIFADO').trim()||'ALMOXARIFADO';
+ applyMacroAssignmentsInline();
+ if(save()){
+  renderTeams();
+  const el=document.getElementById('macroInline');if(el){el.style.display='block';renderMacroInline();}
+  alert('Organograma macro salvo com sucesso.');
+ }
+}
+function applyMacroAssignmentsInline(){
+ const rows=[...document.querySelectorAll('#macroPeopleListInline .macro-person-row')];
+ rows.forEach(row=>{
+  const a={id:row.dataset.personId,sourceType:row.dataset.sourceType,sourceTeamId:row.dataset.sourceTeam||'',destination:row.querySelector('.macro-destination')?.value||'orphan'};
+  let source=null,person=null;
+  if(a.sourceType==='team'){source=state.teams.find(t=>String(t.id)===String(a.sourceTeamId));person=source?.people.find(p=>String(p.id)===String(a.id));}
+  else{source=state.orphanPeople;person=source?.find(p=>String(p.id)===String(a.id));}
+  if(!person)return;
+  if(a.destination==='orphan'){
+   if(a.sourceType==='team'){source.people=source.people.filter(p=>String(p.id)!==String(a.id));person.parentId='';if(!state.orphanPeople.some(p=>String(p.id)===String(a.id)))state.orphanPeople.push(person);}return;
+  }
+  const destId=a.destination.replace(/^team:/,'');const dest=state.teams.find(t=>String(t.id)===String(destId));if(!dest)return;
+  if(a.sourceType==='team'&&String(source.id)===String(dest.id))return;
+  if(a.sourceType==='team')source.people=source.people.filter(p=>String(p.id)!==String(a.id));else state.orphanPeople=state.orphanPeople.filter(p=>String(p.id)!==String(a.id));
+  person.parentId='';dest.people=dest.people||[];if(!dest.people.some(p=>String(p.id)===String(person.id)))dest.people.push(person);
+ });
+}
+
+function openMacroOrgModal(){
+ const m=ensureMacroOrg();
+ macroOrgTitle.value=m.title||'ORGANOGRAMA MACRO';
+ macroOrgRoot.value=m.root||'ALMOXARIFADO';
+ renderMacroOrder();
+ renderMacroPeople();
+ renderMacroPreview();
+ openModal('macroOrgModal');
+}
+function renderMacroOrder(){
+ const el=document.getElementById('macroTeamOrder'),m=ensureMacroOrg(),ids=m.teamOrder||[];
+ if(!ids.length){el.innerHTML='<div class="small-note">Crie uma equipe para montar o organograma macro.</div>';return;}
+ el.innerHTML=ids.map((id,idx)=>{const t=state.teams.find(x=>String(x.id)===String(id));if(!t)return '';return `<div class="org-editor-person"><div class="drag-handle">${idx+1}</div><div class="avatar">${t.leaderPhoto?`<img src="${t.leaderPhoto}">`:esc((t.name||'?')[0])}</div><div><b>${esc(t.name)}</b><small style="display:block;color:var(--muted);margin-top:2px">${esc(t.leader||'Responsável não definido')} · ${(t.people||[]).length} colaborador(es)</small></div><div class="org-editor-actions"><select onchange="setMacroParent('${String(id)}',this.value)" style="background:#0c110f;color:#fff;border:1px solid #3a4540;border-radius:6px;padding:6px;font-size:10px"><option value="">Raiz / abaixo do organograma</option>${ids.filter(other=>String(other)!==String(id)).map(other=>{const ot=state.teams.find(x=>String(x.id)===String(other));return `<option value="${esc(String(other))}" ${String((m.parents||{})[String(id)]||'')===String(other)?'selected':''}>Responde a: ${esc(ot?.name||'Equipe')}</option>`}).join('')}</select><button class="btn btn-small" ${idx===0?'disabled':''} onclick="moveMacroTeam(${idx},-1)">↑</button><button class="btn btn-small" ${idx===ids.length-1?'disabled':''} onclick="moveMacroTeam(${idx},1)">↓</button></div></div>`}).join('');
+}
+function setMacroParent(teamId,parentId){const m=ensureMacroOrg();m.parents=m.parents||{};let candidate=String(parentId||'');let cur=candidate;const seen=new Set([String(teamId)]);while(cur){if(seen.has(cur)){candidate='';break;}seen.add(cur);cur=String(m.parents[cur]||'');}m.parents[String(teamId)]=candidate;save();renderMacroOrder();renderMacroPreview();renderMacroInline();}
+
+function moveMacroTeam(index,dir){const m=ensureMacroOrg(),ids=m.teamOrder,ni=index+dir;if(ni<0||ni>=ids.length)return;[ids[index],ids[ni]]=[ids[ni],ids[index]];renderMacroOrder();renderMacroPeople();renderMacroPreview()}
+function saveMacroOrg(){
+ state.macroOrg=ensureMacroOrg();
+ applyMacroAssignments();
+ state.macroOrg.title=macroOrgTitle.value.trim()||'ORGANOGRAMA MACRO';
+ state.macroOrg.root=macroOrgRoot.value.trim()||'ALMOXARIFADO';
+ state.macroOrg.teamOrder=state.macroOrg.teamOrder||state.teams.map(t=>String(t.id));
+ save();
+ closeModal('macroOrgModal');
+ renderTeams();
+ const mi=document.getElementById('macroInline');if(mi){mi.style.display='block';renderMacroInline();}
+}
+function renderMacroPreview(){const el=document.getElementById('macroOrgPreview');if(!el)return;const m=ensureMacroOrg(),ids=m.teamOrder||[],teams=ids.map(id=>state.teams.find(t=>String(t.id)===String(id))).filter(Boolean),parents=m.parents||{},childrenOf=pid=>teams.filter(t=>String(parents[String(t.id)]||'')===String(pid||'')),build=pid=>childrenOf(pid).map(t=>`<div class="org-node macro-team-node">${t.leaderPhoto?`<img class="org-photo" src="${t.leaderPhoto}">`:''}<b>${esc(t.name)}</b><small>${esc(t.leader||'Responsável não definido')}</small><span class="small-note">${(t.people||[]).length} colaborador(es)</span>${build(t.id)?`<div class="connector"></div><div class="org-children">${build(t.id)}</div>`:''}</div>`).join(''),root=esc(document.getElementById('macroOrgRoot')?.value?.trim()||m.root||'ALMOXARIFADO'),title=esc(document.getElementById('macroOrgTitle')?.value?.trim()||m.title||'ORGANOGRAMA MACRO');el.innerHTML=`<div class="panel" style="margin:0"><div class="panel-title">${title}</div><div class="org macro-org-preview"><div class="org-node main"><b>${root}</b><small>Estrutura principal</small></div>${teams.length?`<div class="connector"></div><div class="org-children macro-team-row">${build('')}</div>`:''}</div></div>`;}
+function renderTeams(){
+ teamList.innerHTML='';
+ if(!state.teams.length){teamList.innerHTML='<div class="team-card" style="grid-column:1/-1"><div class="empty">Nenhuma equipe cadastrada. Clique em + NOVA EQUIPE.</div></div>';return}
+ state.teams.forEach(t=>{
+  t.people=t.people||[];
+  const people=t.people.map((p,idx)=>`<div class="person" draggable="true" ondragstart="dragStartPerson(event,'${t.id}','${p.id}')" ondragend="dragEndPerson(event)" ondragover="dragOverPerson(event)" ondragleave="dragLeavePerson(event)" ondrop="dropPerson(event,'${t.id}','${p.id}')">
+   <div class="drag-handle" title="Arraste para ordenar">☷</div>
+   <div class="avatar">${p.photo?`<img src="${p.photo}">`:esc((p.name||'?')[0])}</div>
+   <div class="person-main"><div><b>${esc(p.name)}</b><small>${esc(p.role||'')}</small></div></div>
+   <div class="person-actions">
+    <button class="btn btn-small order-btn" title="Subir" onclick="reorderPerson('${t.id}','${p.id}',-1)">↑</button>
+    <button class="btn btn-small order-btn" title="Descer" onclick="reorderPerson('${t.id}','${p.id}',1)">↓</button>
+    <button class="btn btn-small" title="Mover para outra equipe" onclick="movePersonModal('${t.id}','${p.id}')">MOVER</button>
+    <button class="btn btn-danger btn-small" title="Remover da equipe" onclick="removePerson('${t.id}','${p.id}')">EXCLUIR</button>
+   </div>
+  </div>`).join('');
+  const tasks=t.tasks.map(x=>`<li>${esc(x)}</li>`).join('')||'<li>Nenhuma tarefa cadastrada.</li>';
+  const metrics=t.metrics.map(m=>`<div class="metric-mini"><span>${esc(m.name)} <small>(${esc(m.unit||'')})</small></span><span><b>${fmtUnit(m.value,m.unit)}</b> / ${fmtUnit(m.target,m.unit)} <button class="btn btn-small" onclick="updateMetric('${t.id}','${m.id}')">EDITAR</button><button class="btn btn-danger btn-small" onclick="deleteMetric('${t.id}','${m.id}')">×</button></span></div>`).join('')||'<div class="empty">Nenhuma métrica.</div>';
+  const c=document.createElement('div');c.className='team-card';c.innerHTML=`<div class="team-head"><div><h3>${esc(t.name)}</h3><div class="team-meta">${esc(t.desc||'')}</div></div><div class="actions"><button class="btn btn-small" onclick="openTeamModal('${t.id}')">EDITAR</button><button class="btn btn-danger btn-small" onclick="deleteTeam('${t.id}')">EXCLUIR</button></div></div><div class="team-meta"><b>Responsável:</b> ${esc(t.leader||'Não definido')}</div>${t.leaderPhoto?`<div class="person"><div class="avatar"><img src="${t.leaderPhoto}"></div><div style="flex:1"><b>${esc(t.leader||'Responsável não definido')}</b></div></div>`:''}<div class="people">${people}</div><div class="team-actions"><button class="btn btn-small" onclick="selectTeam('${t.id}')">ORGANOGRAMA</button><button class="btn btn-small" onclick="openPersonModal('${t.id}')">+ COLABORADOR</button><button class="btn btn-small" onclick="openMetricModal('${t.id}')">+ MÉTRICA</button></div><div style="margin-top:15px"><b>Tarefas</b><ul class="task-list">${tasks}</ul></div><div style="margin-top:15px"><b>Métricas da equipe</b>${metrics}</div>`;teamList.appendChild(c);
+ });
+ if(currentTeamId)selectTeam(currentTeamId); else updateOrgEditButton();
+ renderCollaborators();renderFreeOrg();
+ const mi=document.getElementById('macroInline');if(mi&&mi.style.display!=='none')renderMacroInline();
+}
+function loadConfigForm(){
+ appTitleInput.value=state.title;
+ logoPreview.src=state.logo||'';logoPreview.style.display=state.logo?'block':'none';
+ const t=state.texts;
+ const ids=['Subtitle','Footer1','Footer2','NavDashboard','NavFeed','NavHistory','NavTeams','NavConfig','AccSection','AccChart','AccKpi1','AccKpi2','AccKpi3','DelSection','DelChart','DelKpi1','DelKpi2','DelKpi3','DelKpi4','Prog1','Prog2','LegendResult','LegendMeta','Summary','FeedTitle','HistoryTitle','TeamsTitle'];
+ const keys=['subtitle','footer1','footer2','navDashboard','navFeed','navHistory','navTeams','navConfig','accSection','accChart','accKpi1','accKpi2','accKpi3','delSection','delChart','delKpi1','delKpi2','delKpi3','delKpi4','prog1','prog2','legendResult','legendMeta','summary','feedTitle','historyTitle','teamsTitle'];
+ ids.forEach((id,n)=>{const e=document.getElementById('txt'+id);if(e)e.value=t[keys[n]]||''});
+}
+function saveConfig(){state.title=appTitleInput.value.trim()||'INDICADORES ALMOXARIFADO';save();render();alert('Configurações salvas.')}
+function saveTexts(){
+ const t=state.texts;
+ const ids=['Subtitle','Footer1','Footer2','NavDashboard','NavFeed','NavHistory','NavTeams','NavConfig','AccSection','AccChart','AccKpi1','AccKpi2','AccKpi3','DelSection','DelChart','DelKpi1','DelKpi2','DelKpi3','DelKpi4','Prog1','Prog2','LegendResult','LegendMeta','Summary','FeedTitle','HistoryTitle','TeamsTitle'];
+ const keys=['subtitle','footer1','footer2','navDashboard','navFeed','navHistory','navTeams','navConfig','accSection','accChart','accKpi1','accKpi2','accKpi3','delSection','delChart','delKpi1','delKpi2','delKpi3','delKpi4','prog1','prog2','legendResult','legendMeta','summary','feedTitle','historyTitle','teamsTitle'];
+ ids.forEach((id,n)=>{const e=document.getElementById('txt'+id);if(e)t[keys[n]]=e.value.trim()});
+ save();render();loadConfigForm();alert('Textos da tela principal atualizados.');
+}
+logoInput.addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader;r.onload=()=>{state.logo=r.result;save();renderBrand();loadConfigForm()};r.readAsDataURL(f)});
+function renderBrand(){if(state.logo){brandLogo.src=state.logo;brandLogo.style.display='block';brandPlaceholder.style.display='none';logoPreview.src=state.logo;logoPreview.style.display='block'}else{brandLogo.style.display='none';brandPlaceholder.style.display='block';logoPreview.removeAttribute('src');logoPreview.style.display='none'}}
+function removeLogo(){state.logo='';save();renderBrand();logoInput.value=''}
+function exportData(){save();const b=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='backup-indicadores-almoxarifado.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader;r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.indicators||!d.teams)throw Error();state=d;state.orphanPeople=state.orphanPeople||[];state.texts=Object.assign({},base.texts,state.texts||{});state.indicators.forEach(i=>i.records=norm(i.records,i.target));save();render();renderTeams();loadConfigForm();alert('Backup importado com sucesso.')}catch(err){alert('Arquivo inválido.')}};r.readAsText(f);e.target.value=''}
+function openModal(id){
+ const modal=document.getElementById(id);if(!modal)return;
+ document.querySelectorAll('.modal.open').forEach(m=>m.style.zIndex='50');
+ modal.style.zIndex='100';
+ modal.classList.add('open');
+}
+function closeModal(id){const modal=document.getElementById(id);if(!modal)return;modal.classList.remove('open');modal.style.zIndex='';}
+document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));
+render();renderBrand();renderTeams();renderCollaborators();renderFreeOrg();loadConfigForm();
+hydrateImages();
+
+/* =========================================================
+   CORREÇÃO FINAL — ORGANOGRAMA MACRO
+   Não altera Dashboard, indicadores ou gráficos.
+   Substitui somente a interface/comportamento do organograma macro.
+   ========================================================= */
+
+(function(){
+  const css = `
+  /* --- Organograma macro: área compacta --- */
+  #macroInline{
+    margin-top:10px !important;
+    padding:10px !important;
+    max-height:none !important;
+  }
+  #macroInline > .panel{
+    margin:0 !important;
+    padding:12px !important;
+  }
+  .macro-inline-layout{
+    display:grid;
+    grid-template-columns:minmax(430px,1.05fr) minmax(360px,.95fr);
+    gap:12px;
+    align-items:start;
+  }
+  .macro-editor-column,
+  .macro-preview-column{
+    min-width:0;
+  }
+  .macro-editor-section{
+    background:#0d1210;
+    border:1px solid #29332f;
+    border-radius:10px;
+    padding:10px;
+    margin-top:10px;
+  }
+  .macro-editor-section:first-child{margin-top:0}
+  .macro-editor-section-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:8px;
+  }
+  .macro-editor-section-head strong{font-size:11px}
+  .macro-editor-help{font-size:10px;color:var(--muted);line-height:1.35}
+  .macro-root-drop{
+    border:1px dashed #69736e;
+    border-radius:9px;
+    padding:9px 10px;
+    margin-bottom:8px;
+    text-align:center;
+    color:#dfe3e1;
+    background:#101613;
+    cursor:copy;
+    transition:.15s;
+  }
+  .macro-root-drop.drag-over{
+    border-color:var(--yellow);
+    background:rgba(255,210,10,.08);
+    color:#fff;
+  }
+  .macro-hierarchy-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .macro-hierarchy-row{
+    display:grid;
+    grid-template-columns:28px 36px minmax(0,1fr) auto;
+    gap:8px;
+    align-items:center;
+    padding:7px 8px;
+    border:1px solid #29332f;
+    border-radius:9px;
+    background:#101513;
+    cursor:grab;
+    transition:.15s;
+  }
+  .macro-hierarchy-row:active{cursor:grabbing}
+  .macro-hierarchy-row.dragging{opacity:.45}
+  .macro-hierarchy-row.drag-over{
+    border-color:var(--yellow);
+    background:rgba(255,210,10,.06);
+  }
+  .macro-hierarchy-row .macro-order-number{
+    color:var(--muted);
+    font-size:10px;
+    font-weight:800;
+    text-align:center;
+  }
+  .macro-hierarchy-row .macro-team-avatar{
+    width:34px;height:34px;border-radius:50%;
+    border:2px solid var(--yellow);
+    overflow:hidden;display:grid;place-items:center;
+    background:#252d29;font-weight:800;font-size:10px;
+  }
+  .macro-hierarchy-row .macro-team-avatar img{
+    width:100%;height:100%;object-fit:cover;
+  }
+  .macro-team-copy{min-width:0}
+  .macro-team-copy b{
+    display:block;font-size:11px;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;
+  }
+  .macro-team-copy small{
+    display:block;color:var(--muted);font-size:9px;
+    margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .macro-hierarchy-actions{
+    display:flex;gap:4px;align-items:center;justify-content:flex-end;
+  }
+  .macro-hierarchy-actions .btn{
+    min-width:27px !important;padding:5px 7px !important;
+  }
+  .macro-parent-badge{
+    display:inline-flex;align-items:center;gap:4px;
+    margin-top:3px;padding:2px 5px;border-radius:4px;
+    background:#171d1a;border:1px solid #29332f;
+    color:#cbd1ce;font-size:8px;
+  }
+  .macro-distribution-list{
+    display:flex;flex-direction:column;gap:6px;
+    max-height:360px;overflow:auto;padding-right:2px;
+  }
+  .macro-distribution-row{
+    display:grid;
+    grid-template-columns:34px minmax(0,1fr) minmax(170px,230px);
+    gap:8px;align-items:center;
+    padding:7px 8px;
+    border:1px solid #29332f;border-radius:8px;background:#101513;
+  }
+  .macro-distribution-row .avatar{
+    width:32px;height:32px;
+  }
+  .macro-distribution-row .avatar img{
+    width:32px;height:32px;border-radius:50%;object-fit:cover;
+  }
+  .macro-distribution-info{min-width:0}
+  .macro-distribution-info b{
+    display:block;font-size:10px;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;
+  }
+  .macro-distribution-info small{
+    display:block;color:var(--muted);font-size:8px;
+    margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .macro-distribution-row select{width:100%;min-height:31px;font-size:9px}
+  .macro-preview-box{
+    border:1px solid #29332f;border-radius:10px;
+    background:#0d1210;padding:10px;
+    min-height:0 !important;
+  }
+  .macro-preview-canvas{
+    min-height:260px !important;
+    max-height:520px;
+    overflow:auto;
+    padding:12px !important;
+  }
+  .macro-preview-canvas .org-node{
+    min-width:145px;max-width:205px;padding:8px 10px;
+  }
+  .macro-preview-canvas .org-photo{
+    width:42px;height:42px;margin-bottom:5px;
+  }
+  .macro-preview-canvas .org-node b{font-size:10px}
+  .macro-preview-canvas .org-node small{font-size:8px}
+  .macro-preview-canvas .small-note{font-size:8px}
+  .macro-preview-canvas .connector{height:12px}
+  .macro-preview-canvas .org-children{gap:8px}
+  .macro-save-row{
+    display:flex;justify-content:flex-end;gap:7px;
+    margin-top:10px;
+  }
+  .macro-inline-title-fields{
+    display:grid;grid-template-columns:1fr 1fr;gap:8px;
+  }
+  .macro-inline-title-fields .field label{font-size:9px}
+  .macro-inline-title-fields input{min-height:34px;font-size:10px}
+  .macro-empty-note{color:var(--muted);font-size:9px;padding:8px 2px}
+  @media(max-width:1050px){
+    .macro-inline-layout{grid-template-columns:1fr}
+    .macro-preview-canvas{max-height:none}
+  }
+  @media(max-width:700px){
+    .macro-inline-title-fields{grid-template-columns:1fr}
+    .macro-distribution-row{grid-template-columns:34px 1fr}
+    .macro-distribution-row select{grid-column:1/-1}
+    .macro-hierarchy-row{grid-template-columns:24px 34px 1fr}
+    .macro-hierarchy-actions{grid-column:1/-1;justify-content:flex-end}
+  }
+  `;
+  const style=document.createElement('style');
+  style.id='macroFinalFixStyles';
+  style.textContent=css;
+  document.head.appendChild(style);
+
+  function teamById(id){
+    return state.teams.find(t=>String(t.id)===String(id));
+  }
+
+  function macroDepth(id, parents, guard){
+    guard=guard||new Set();
+    id=String(id);
+    if(guard.has(id)) return 0;
+    guard.add(id);
+    const p=String(parents[id]||'');
+    return p ? Math.min(5,1+macroDepth(p,parents,guard)) : 0;
+  }
+
+  function isMacroDescendant(candidate, ancestor, parents){
+    let cur=String(candidate||''), guard=new Set();
+    ancestor=String(ancestor||'');
+    while(cur && !guard.has(cur)){
+      if(cur===ancestor)return true;
+      guard.add(cur);
+      cur=String(parents[cur]||'');
+    }
+    return false;
+  }
+
+  window.setMacroParent=function(teamId,parentId){
+    const m=ensureMacroOrg();
+    m.parents=m.parents||{};
+    const id=String(teamId), parent=String(parentId||'');
+    if(parent && (parent===id || isMacroDescendant(parent,id,m.parents))){
+      alert('Essa relação criaria um ciclo. Escolha outra equipe.');
+      renderMacroInline();
+      return;
+    }
+    m.parents[id]=parent;
+    save();
+    renderMacroInline();
+  };
+
+  window.macroDragStart=function(e,id){
+    e.dataTransfer.effectAllowed='move';
+    e.dataTransfer.setData('text/plain',String(id));
+    e.currentTarget.classList.add('dragging');
+  };
+
+  window.macroDragEnd=function(e){
+    e.currentTarget.classList.remove('dragging');
+    document.querySelectorAll('.macro-hierarchy-row.drag-over,.macro-root-drop.drag-over')
+      .forEach(x=>x.classList.remove('drag-over'));
+  };
+
+  window.macroDragOver=function(e){
+    e.preventDefault();
+    e.dataTransfer.dropEffect='move';
+    e.currentTarget.classList.add('drag-over');
+  };
+
+  window.macroDragLeave=function(e){
+    e.currentTarget.classList.remove('drag-over');
+  };
+
+  window.macroDropOnTeam=function(e,targetId){
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+    const dragged=String(e.dataTransfer.getData('text/plain')||'');
+    const target=String(targetId||'');
+    if(!dragged || dragged===target)return;
+
+    const m=ensureMacroOrg();
+    m.parents=m.parents||{};
+    const ids=m.teamOrder||[];
+    const targetParent=String(m.parents[target]||'');
+
+    /*
+       Soltar no centro da caixa = tornar subordinada.
+       Soltar no terço superior = ficar antes da equipe.
+       Soltar no terço inferior = ficar depois da equipe.
+       Assim a hierarquia pode ser montada visualmente sem depender de selects.
+    */
+    const rect=e.currentTarget.getBoundingClientRect();
+    const ratio=rect.height?((e.clientY-rect.top)/rect.height):.5;
+
+    if(ratio<.30 || ratio>.70){
+      const oldParent=String(m.parents[dragged]||'');
+      m.parents[dragged]=targetParent;
+      const oldIndex=ids.indexOf(dragged);
+      if(oldIndex>=0)ids.splice(oldIndex,1);
+      let targetIndex=ids.indexOf(target);
+      if(targetIndex<0)return;
+      if(ratio>.70)targetIndex++;
+      ids.splice(targetIndex,0,dragged);
+      save();
+      renderMacroInline();
+      return;
+    }
+
+    if(isMacroDescendant(target,dragged,m.parents)){
+      alert('Não é possível colocar uma equipe dentro de uma equipe que já está abaixo dela.');
+      return;
+    }
+    m.parents[dragged]=target;
+    save();
+    renderMacroInline();
+  };
+
+  window.macroDropOnRoot=function(e){
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+    const dragged=String(e.dataTransfer.getData('text/plain')||'');
+    if(!dragged)return;
+    const m=ensureMacroOrg();
+    m.parents=m.parents||{};
+    m.parents[dragged]='';
+    save();
+    renderMacroInline();
+  };
+
+  window.macroMoveSibling=function(teamId,dir){
+    const m=ensureMacroOrg(), ids=m.teamOrder||[], parents=m.parents||{};
+    const id=String(teamId), parent=String(parents[id]||'');
+    const siblings=ids.filter(x=>String(parents[String(x)]||'')===parent);
+    const pos=siblings.indexOf(id);
+    const next=pos+Number(dir);
+    if(pos<0 || next<0 || next>=siblings.length)return;
+    const a=siblings[pos],b=siblings[next];
+    const ia=ids.indexOf(a),ib=ids.indexOf(b);
+    if(ia<0||ib<0)return;
+    [ids[ia],ids[ib]]=[ids[ib],ids[ia]];
+    save();
+    renderMacroInline();
+  };
+
+  window.macroSetRoot=function(teamId){
+    window.setMacroParent(String(teamId),'');
+  };
+
+  window.toggleMacroInline=function(){
+    const el=document.getElementById('macroInline');
+    if(!el)return;
+    const opening=el.style.display==='none'||!el.style.display;
+    if(opening){
+      renderMacroInline();
+      el.style.display='block';
+      requestAnimationFrame(()=>el.scrollIntoView({behavior:'smooth',block:'nearest'}));
+    }else{
+      el.style.display='none';
+    }
+  };
+
+  /* Qualquer botão antigo que ainda chame openMacroOrgModal passa a abrir
+     a edição inline, evitando novamente o popup do organograma macro. */
+  window.openMacroOrgModal=function(){
+    const el=document.getElementById('macroInline');
+    if(!el)return;
+    renderMacroInline();
+    el.style.display='block';
+    requestAnimationFrame(()=>el.scrollIntoView({behavior:'smooth',block:'nearest'}));
+  };
+
+  window.saveMacroOrgInline=function(){
+    const m=ensureMacroOrg();
+    const title=document.getElementById('macroInlineTitle');
+    const root=document.getElementById('macroInlineRoot');
+
+    m.title=(title?.value||m.title||'ORGANOGRAMA MACRO').trim()||'ORGANOGRAMA MACRO';
+    m.root=(root?.value||m.root||'ALMOXARIFADO').trim()||'ALMOXARIFADO';
+
+    /* Captura a distribuição antes de redesenhar. */
+    applyMacroAssignmentsInline();
+
+    if(save()){
+      renderTeams();
+      const el=document.getElementById('macroInline');
+      if(el){
+        el.style.display='block';
+        renderMacroInline();
+      }
+    }
+  };
+
+  window.renderMacroInline=function(){
+    const el=document.getElementById('macroInline');
+    if(!el)return;
+
+    const m=ensureMacroOrg();
+    const teams=(m.teamOrder||[])
+      .map(id=>teamById(id))
+      .filter(Boolean);
+    const parents=m.parents||{};
+    const people=collectMacroPeople();
+
+    const childrenOf=pid=>teams.filter(t=>String(parents[String(t.id)]||'')===String(pid||''));
+
+    function previewNode(t){
+      const children=childrenOf(t.id);
+      return `<div class="org-node macro-team-node">
+        ${t.leaderPhoto?`<img class="org-photo" src="${t.leaderPhoto}">`:''}
+        <b>${esc(t.name)}</b>
+        <small>${esc(t.leader||'Responsável não definido')}</small>
+        <span class="small-note">${(t.people||[]).length} colaborador(es)</span>
+        ${children.length?`<div class="connector"></div><div class="org-children">${children.map(previewNode).join('')}</div>`:''}
+      </div>`;
+    }
+
+    const roots=teams.filter(t=>!String(parents[String(t.id)]||''));
+
+    const hierarchyRows=teams.map((t,idx)=>{
+      const id=String(t.id);
+      const parent=String(parents[id]||'');
+      const depth=macroDepth(id,parents);
+      const parentTeam=parent?teamById(parent):null;
+      const firstSibling=(m.teamOrder||[]).filter(x=>String(parents[String(x)]||'')===parent)[0];
+      const lastSibling=[...(m.teamOrder||[])].filter(x=>String(parents[String(x)]||'')===parent).at(-1);
+
+      return `<div
+        class="macro-hierarchy-row"
+        draggable="true"
+        data-macro-team="${esc(id)}"
+        style="margin-left:${Math.min(depth,5)*18}px"
+        ondragstart="macroDragStart(event,'${esc(id)}')"
+        ondragend="macroDragEnd(event)"
+        ondragover="macroDragOver(event)"
+        ondragleave="macroDragLeave(event)"
+        ondrop="macroDropOnTeam(event,'${esc(id)}')"
+      >
+        <div class="macro-order-number">${idx+1}</div>
+        <div class="macro-team-avatar">
+          ${t.leaderPhoto?`<img src="${t.leaderPhoto}">`:esc((t.name||'?')[0])}
+        </div>
+        <div class="macro-team-copy">
+          <b>${esc(t.name)}</b>
+          <small>${esc(t.leader||'Responsável não definido')} · ${(t.people||[]).length} colaborador(es)</small>
+          <span class="macro-parent-badge">${parentTeam?`↳ responde a ${esc(parentTeam.name)}`:'↳ nível raiz'}</span>
+        </div>
+        <div class="macro-hierarchy-actions">
+          ${parent?`<button class="btn btn-small" title="Tornar raiz" onclick="event.stopPropagation();macroSetRoot('${esc(id)}')">RAIZ</button>`:''}
+          <button class="btn btn-small" ${String(id)===String(firstSibling)?'disabled':''} title="Subir dentro do mesmo nível" onclick="event.stopPropagation();macroMoveSibling('${esc(id)}',-1)">↑</button>
+          <button class="btn btn-small" ${String(id)===String(lastSibling)?'disabled':''} title="Descer dentro do mesmo nível" onclick="event.stopPropagation();macroMoveSibling('${esc(id)}',1)">↓</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    const peopleHtml=people.length
+      ? people.map(p=>`
+        <div class="macro-distribution-row"
+             data-person-id="${esc(p.id)}"
+             data-source-type="${esc(p.sourceType)}"
+             data-source-team="${esc(p.sourceTeamId||'')}">
+          <div class="avatar">
+            ${p.photo?`<img src="${p.photo}">`:esc((p.name||'?')[0])}
+          </div>
+          <div class="macro-distribution-info">
+            <b>${esc(p.name)}</b>
+            <small>${esc(p.role||'Colaborador')} · ${esc(p.sourceTeamName)}</small>
+          </div>
+          <div>
+            <select class="macro-destination">
+              ${macroDestinationOptions(p)}
+            </select>
+          </div>
+        </div>`).join('')
+      : '<div class="macro-empty-note">Nenhum colaborador cadastrado.</div>';
+
+    el.innerHTML=`
+      <div class="panel" style="margin:0">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">${esc(m.title||'ORGANOGRAMA MACRO')}</div>
+            <div class="small-note">Monte a hierarquia arrastando uma equipe sobre outra. Solte no campo RAIZ para retirar a subordinação.</div>
+          </div>
+          <div class="actions">
+            <button class="btn btn-small" onclick="toggleMacroInline()">OCULTAR</button>
+            <button class="btn btn-primary btn-small" onclick="saveMacroOrgInline()">SALVAR ORGANOGRAMA MACRO</button>
+          </div>
+        </div>
+
+        <div class="macro-inline-title-fields" style="margin-top:10px">
+          <div class="field">
+            <label>TÍTULO DO ORGANOGRAMA</label>
+            <input id="macroInlineTitle" value="${esc(m.title||'ORGANOGRAMA MACRO')}">
+          </div>
+          <div class="field">
+            <label>ESTRUTURA PRINCIPAL / RAIZ</label>
+            <input id="macroInlineRoot" value="${esc(m.root||'ALMOXARIFADO')}">
+          </div>
+        </div>
+
+        <div class="macro-inline-layout">
+          <div class="macro-editor-column">
+            <div class="macro-editor-section">
+              <div class="macro-editor-section-head">
+                <strong>HIERARQUIA LIVRE DAS EQUIPES</strong>
+                <span class="macro-editor-help">Arraste e solte uma equipe sobre outra para criar a subordinação.</span>
+              </div>
+
+              <div
+                class="macro-root-drop"
+                ondragover="macroDragOver(event)"
+                ondragleave="macroDragLeave(event)"
+                ondrop="macroDropOnRoot(event)"
+              >
+                SOLTAR AQUI = NÍVEL RAIZ / SEM SUPERIOR
+              </div>
+
+              <div class="macro-hierarchy-list">
+                ${hierarchyRows || '<div class="macro-empty-note">Nenhuma equipe cadastrada.</div>'}
+              </div>
+            </div>
+
+            <div class="macro-editor-section">
+              <div class="macro-editor-section-head">
+                <strong>DISTRIBUIÇÃO DOS COLABORADORES</strong>
+                <div class="actions">
+                  <span class="macro-editor-help">${people.length} pessoa(s) cadastrada(s)</span>
+                  <button class="btn btn-primary btn-small" type="button" onclick="openOrphanModalFromMacroInline()">+ PESSOA AVULSA</button>
+                </div>
+              </div>
+              <div class="macro-editor-help" style="margin-bottom:7px">
+                Todos os colaboradores cadastrados aparecem aqui. Escolha livremente a equipe de destino.
+              </div>
+              <div class="macro-distribution-list">${peopleHtml}</div>
+            </div>
+          </div>
+
+          <div class="macro-preview-column">
+            <div class="macro-preview-box">
+              <div class="macro-editor-section-head">
+                <strong>PRÉ-VISUALIZAÇÃO</strong>
+                <span class="macro-editor-help">${roots.length} equipe(s) no nível raiz</span>
+              </div>
+              <div class="org macro-preview-canvas">
+                <div class="org-node main">
+                  <b>${esc(m.root||'ALMOXARIFADO')}</b>
+                  <small>Estrutura principal</small>
+                </div>
+                ${roots.length?`<div class="connector"></div><div class="org-children macro-team-row">${roots.map(previewNode).join('')}</div>`:''}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="macro-save-row">
+          <button class="btn btn-primary btn-small" onclick="saveMacroOrgInline()">SALVAR ORGANOGRAMA MACRO</button>
+        </div>
+      </div>`;
+  };
+
+  window.openOrphanModalFromMacroInline=function(){
+    openOrphanModal();
+    const orphan=document.getElementById('orphanModal');
+    if(orphan)orphan.style.zIndex='120';
+  };
+
+  window.applyMacroAssignmentsInline=function(){
+    const rows=[...document.querySelectorAll('#macroInline .macro-distribution-row')];
+
+    rows.forEach(row=>{
+      const a={
+        id:row.dataset.personId,
+        sourceType:row.dataset.sourceType,
+        sourceTeamId:row.dataset.sourceTeam||'',
+        destination:row.querySelector('.macro-destination')?.value||'orphan'
+      };
+
+      let source=null,person=null;
+
+      if(a.sourceType==='team'){
+        source=state.teams.find(t=>String(t.id)===String(a.sourceTeamId));
+        person=source?.people.find(p=>String(p.id)===String(a.id));
+      }else{
+        source=state.orphanPeople;
+        person=source?.find(p=>String(p.id)===String(a.id));
+      }
+
+      if(!person)return;
+
+      if(a.destination==='orphan'){
+        if(a.sourceType==='team'){
+          source.people=source.people.filter(p=>String(p.id)!==String(a.id));
+          person.parentId='';
+          if(!state.orphanPeople.some(p=>String(p.id)===String(a.id))){
+            state.orphanPeople.push(person);
+          }
+        }
+        return;
+      }
+
+      const destId=a.destination.replace(/^team:/,'');
+      const dest=state.teams.find(t=>String(t.id)===String(destId));
+      if(!dest)return;
+
+      if(a.sourceType==='team' && String(source.id)===String(dest.id))return;
+
+      if(a.sourceType==='team'){
+        source.people=source.people.filter(p=>String(p.id)!==String(a.id));
+      }else{
+        state.orphanPeople=state.orphanPeople.filter(p=>String(p.id)!==String(a.id));
+      }
+
+      person.parentId='';
+      dest.people=dest.people||[];
+
+      if(!dest.people.some(p=>String(p.id)===String(person.id))){
+        dest.people.push(person);
+      }
+    });
+  };
+
+  /* Mantém a pessoa avulsa dentro do contexto da edição macro. */
+  const originalSaveOrphan=window.saveOrphan;
+  if(typeof originalSaveOrphan==='function'){
+    window.saveOrphan=function(){
+      const result=originalSaveOrphan.apply(this,arguments);
+      setTimeout(()=>{
+        const macro=document.getElementById('macroInline');
+        if(macro && macro.style.display!=='none'){
+          renderMacroInline();
+        }
+      },120);
+      return result;
+    };
+  }
+
+  /* Se o aplicativo já estiver na Gestão de equipes, deixa o macro pronto
+     sem alterar nenhuma outra tela. */
+  document.addEventListener('change',function(e){
+    if(e.target && e.target.classList.contains('macro-destination')){
+      /* Não redesenha aqui para não perder a escolha dos demais colaboradores. */
+      return;
+    }
+  });
+
+})();
+
+</script>
+</body>
+</html>
